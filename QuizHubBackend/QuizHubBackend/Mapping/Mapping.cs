@@ -12,7 +12,7 @@ namespace QuizHubBackend.Mapping
     {
        public Mapping()
         {
-            CreateMap<User, UserDTO>().ReverseMap();
+            CreateMap<User, UserDTO>().ReverseMap().ForMember(dest => dest.ProfileImage, opt => opt.Ignore());;
             CreateMap<User, LoginDTO>().ReverseMap();
         }
     }

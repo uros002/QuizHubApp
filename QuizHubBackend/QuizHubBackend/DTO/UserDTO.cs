@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace QuizHubBackend.DTO
 {
@@ -12,7 +13,7 @@ namespace QuizHubBackend.DTO
 
         public string Password { get; set; }
 
-        public byte[] Image { get; set; }
+        public IFormFile ProfileImage { get; set; }
 
         public string Email { get; set; }
     }

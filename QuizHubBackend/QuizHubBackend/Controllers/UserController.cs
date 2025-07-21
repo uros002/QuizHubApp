@@ -21,9 +21,17 @@ namespace QuizHubBackend.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDTO dto)
+        public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            return Ok(_userService.Login(dto));
+            var token = await _userService.Login(dto);
+            return Ok(token);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromForm] UserDTO dto)
+        {
+            var token = await _userService.Register(dto);
+            return Ok(token);
         }
 
     }

@@ -42,6 +42,12 @@ namespace QuizHubBackend
 
 
             services.AddControllers();
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                options.JsonSerializerOptions.MaxDepth = 64; // Set the maximum depth to 64
+            });
+            services.AddControllers().AddNewtonsoftJson();
 
             services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -82,14 +88,15 @@ namespace QuizHubBackend
                 //CorsPolicyBuilder builder = new CorsPolicyBuilder();
                 options.AddPolicy(name: _cors, builder =>
                 {
-                    builder.WithOrigins("https://localhost:3000")
+                    builder.WithOrigins("http://localhost:3000")
                            .AllowAnyHeader()
+                            //.WithHeaders("Authorization", "Content-Type", "Accept") // eksplicitno
                            .AllowAnyMethod()
                            .AllowCredentials();
                 });
             });
 
-
+            services.AddScoped<DbContext, AppDbContext>();
             services.AddScoped<IUserService, UserService>();
 
         }
@@ -107,12 +114,17 @@ namespace QuizHubBackend
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "QuizHubBackend v1"));
             }
 
+            app.UseRouting();
+
+            app.UseCors(_cors);
+
             app.UseHttpsRedirection();
 
-            app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+
 
             app.UseEndpoints(endpoints =>
             {

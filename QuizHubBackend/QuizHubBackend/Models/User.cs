@@ -13,7 +13,7 @@ namespace QuizHubBackend.Models
 
         public string Password { get; set; }
 
-        public byte[] Image { get; set; }
+        public byte[] ProfileImage { get; set; }
 
         public string Email { get; set; }
 

@@ -9,5 +9,7 @@ namespace QuizHubBackend.Interfaces
     public interface IUserService
     {
         Task<string> Login(LoginDTO dto);
+
+        Task<string> Register(UserDTO dto);
     }
 }

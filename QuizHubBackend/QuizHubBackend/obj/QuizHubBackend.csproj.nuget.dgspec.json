@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\User\\OneDrive\\Desktop\\DESKTOP\\FAX 4.GODINA\\Primena WEB programiranja\\Project\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj": {}
+    "C:\\Users\\User\\OneDrive\\Dokumenti\\GitHub\\QuizHubApp\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\User\\OneDrive\\Desktop\\DESKTOP\\FAX 4.GODINA\\Primena WEB programiranja\\Project\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj": {
+    "C:\\Users\\User\\OneDrive\\Dokumenti\\GitHub\\QuizHubApp\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User\\OneDrive\\Desktop\\DESKTOP\\FAX 4.GODINA\\Primena WEB programiranja\\Project\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj",
+        "projectUniqueName": "C:\\Users\\User\\OneDrive\\Dokumenti\\GitHub\\QuizHubApp\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj",
         "projectName": "QuizHubBackend",
-        "projectPath": "C:\\Users\\User\\OneDrive\\Desktop\\DESKTOP\\FAX 4.GODINA\\Primena WEB programiranja\\Project\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj",
+        "projectPath": "C:\\Users\\User\\OneDrive\\Dokumenti\\GitHub\\QuizHubApp\\QuizHubBackend\\QuizHubBackend\\QuizHubBackend.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User\\OneDrive\\Desktop\\DESKTOP\\FAX 4.GODINA\\Primena WEB programiranja\\Project\\QuizHubBackend\\QuizHubBackend\\obj\\",
+        "outputPath": "C:\\Users\\User\\OneDrive\\Dokumenti\\GitHub\\QuizHubApp\\QuizHubBackend\\QuizHubBackend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -55,6 +55,10 @@
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[5.0.0, )"
+            },
+            "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
+              "target": "Package",
+              "version": "[5.0.1, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",

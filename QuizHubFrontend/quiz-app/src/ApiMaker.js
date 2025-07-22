@@ -17,12 +17,14 @@ api.interceptors.request.use(
         headers: { ...config.headers, Authorization: `Bearer ${token}` },
       };
     }
-    return {
-      ...config,
-      //       withCredentials: true, // i ovde da bi bilo konzistentno
-    };
+    // return {
+    //   ...config,
+    //   //       withCredentials: true, // i ovde da bi bilo konzistentno
+    // };
+    return config;
   },
   (error) => {
+    console.log("Request error:", error);
     return Promise.reject(error);
   }
 );

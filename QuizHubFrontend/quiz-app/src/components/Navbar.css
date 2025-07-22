@@ -1,0 +1,42 @@
+.navbar {
+  background-color: black;
+  padding: 8px;
+}
+
+.navbar ul {
+  list-style-type: none;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar li {
+  margin-right: 8px;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease-in-out;
+}
+
+.navbar a:hover {
+  color: lightgray;
+}
+
+.navbar button {
+  color: white;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: "Times New Roman";
+  font-size: 16px;
+  transition: color 0.3s ease-in-out;
+}
+
+.navbar button:hover {
+  color: lightgray;
+}

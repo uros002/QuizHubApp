@@ -36,7 +36,11 @@ namespace QuizHubBackend.Services
 
             if(user == null)
             {
-                return "User does not exist!";
+                User userTemp = await _appDbContext.Users.FirstOrDefaultAsync(x => x.Email == dto.Username);
+                if (userTemp == null)
+                {
+                    return "User does not exist!";
+                }
             }
 
             if (BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))

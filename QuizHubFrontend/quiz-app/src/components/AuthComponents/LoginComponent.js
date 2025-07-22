@@ -18,7 +18,7 @@ import AuthContext from "../../context/AuthContext";
 const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({
-    emailOrUsername: "",
+    username: "",
     password: "",
   });
 
@@ -29,8 +29,8 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
   const validateLogin = () => {
     const newErrors = {};
 
-    if (!loginData.emailOrUsername.trim()) {
-      newErrors.emailOrUsername = "Email or username is required";
+    if (!loginData.username.trim()) {
+      newErrors.username = "Username is required";
     }
 
     if (!loginData.password) {
@@ -95,20 +95,18 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
               </div>
               <input
                 type="text"
-                name="emailOrUsername"
-                value={loginData.emailOrUsername}
+                name="username"
+                value={loginData.username}
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
                 className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.emailOrUsername ? "border-red-500" : "border-gray-300"
+                  errors.username ? "border-red-500" : "border-gray-300"
                 }`}
-                placeholder="Enter your email or username"
+                placeholder="Enter your username"
               />
             </div>
-            {errors.emailOrUsername && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.emailOrUsername}
-              </p>
+            {errors.username && (
+              <p className="mt-1 text-sm text-red-600">{errors.username}</p>
             )}
           </div>
 

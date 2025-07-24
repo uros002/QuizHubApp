@@ -24,6 +24,18 @@ namespace QuizHubBackend.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
             var token = await _userService.Login(dto);
+            if(token == "User does not exist!")
+            {
+                return NotFound(token);
+            }else if(token == "Password incorrect!")
+            {
+                return Unauthorized(token);
+            }
+            else if(token == "User does not exist!")
+            {
+                return BadRequest(token);
+            }
+        
             return Ok(token);
         }
 

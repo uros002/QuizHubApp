@@ -6,21 +6,27 @@ const AuthContext = React.createContext();
 
 export const AuthProvider = (props) => {
   const [token, setToken] = useState(null);
-
+  const [error, setError] = useState(null);
   const loginHandler = async (loginData) => {
     try {
-      const response = await api.post("api/users/login", loginData, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Credentials": true,
-          "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
-          "Access-Control-Allow-Headers":
-            "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers",
-        },
-      });
-      setToken(response.data);
-      localStorage.setItem("token", response.data);
-      console.log(response.data);
+      const response = await api.post("api/users/login", loginData);
+      if (
+        response.data !== "Password incorrect!" &&
+        response.data !== "User does not exist!"
+      ) {
+        setToken(response.data);
+        setError(null);
+        localStorage.setItem("token", response.data);
+        localStorage.setItem("UsernameError", null);
+        localStorage.setItem("PasswordError", null);
+        console.log(response.data);
+      } else if (response.data === "User does not exist!") {
+        setError("Invalid username");
+        localStorage.setItem("UsernameError", "Invalid username!");
+      } else if (response.data === "Password incorrect!") {
+        setError("Password incorrect!");
+        localStorage.setItem("PasswordError", "Password incorrect!");
+      }
     } catch (error) {
       console.error("Login failed:", error);
     }

@@ -45,6 +45,14 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
     // e.preventDefault();
     if (validateLogin()) {
       await authContext.login(loginData);
+      var newError = {};
+      newError.password = localStorage.getItem("PasswordError")
+        ? localStorage.getItem("PasswordError")
+        : null;
+      newError.username = localStorage.getItem("UsernameError")
+        ? localStorage.getItem("UsernameError")
+        : null;
+      setErrors(newError); // Clear errors on successful login
     }
   };
 

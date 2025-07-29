@@ -18,7 +18,7 @@ import QuizHubMain, {
   QuizGrid,
   FilterBar,
 } from "./Pages/Dashboard";
-
+import QuizResultsPage from "./Pages/MyResults";
 import QuizSystem from "./Pages/QuizTakingPage";
 
 const Router = () => {
@@ -34,6 +34,10 @@ const Router = () => {
       <Route
         path="/main"
         element={authContext.token ? <QuizHubMain /> : <Navigate to="/" />}
+      />
+      <Route
+        path="/my-results"
+        element={authContext.token ? <QuizResultsPage /> : <Navigate to="/" />}
       />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

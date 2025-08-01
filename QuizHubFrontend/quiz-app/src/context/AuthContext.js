@@ -41,7 +41,12 @@ export const AuthProvider = (props) => {
     try {
       if (!token) return null;
       const decodedToken = jwtDecode(token);
-      return decodedToken.role || "user"; // Default to 'user' if no role is found
+      const role =
+        decodedToken[
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        ] || decodedToken["role"]; // fallback if you ever use plain "role"
+      console.log("Decoded token role:", role);
+      return role || "user"; // Default to 'user' if no role is found
     } catch (error) {
       console.error("Error decoding token:", error);
       return null;

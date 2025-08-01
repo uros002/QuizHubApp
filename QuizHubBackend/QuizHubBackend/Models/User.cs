@@ -17,6 +17,9 @@ namespace QuizHubBackend.Models
 
         public string Email { get; set; }
 
+        public List<QuizResult> QuizResults { get; set; }
+
+
 
     }
 }

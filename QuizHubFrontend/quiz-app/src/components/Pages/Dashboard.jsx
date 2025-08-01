@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
 import {
   Search,
   Filter,
@@ -7,6 +7,13 @@ import {
   Star,
   Play,
   ChevronDown,
+  Edit,
+  Trash2,
+  Plus,
+  Save,
+  X,
+  ArrowLeft,
+  Check,
 } from "lucide-react";
 
 import {
@@ -21,6 +28,7 @@ import {
   ResultsPage,
 } from "./QuizTakingPage";
 import Navbar from "../Navbar";
+import AuthContext from "../../context/AuthContext";
 
 // Header Component
 const QuizHubHeader = ({
@@ -203,11 +211,31 @@ const StartQuizButton = ({ onStart, disabled = false }) => {
   );
 };
 
+// View Quiz Button Component
+const ViewQuizButton = ({ onView, disabled = false }) => {
+  return (
+    <button
+      onClick={onView}
+      disabled={disabled}
+      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <Play className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+      View Quiz
+    </button>
+  );
+};
+
 // Quiz Card Component
-const QuizCard = ({ quiz, onStartQuiz }) => {
+const QuizCard = ({ quiz, onStartQuiz, onViewQuiz }) => {
   const handleStart = () => {
     onStartQuiz(quiz.id);
   };
+
+  const handleView = () => {
+    onViewQuiz(quiz.id);
+  };
+
+  const authContext = useContext(AuthContext);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-indigo-200 group">
@@ -243,7 +271,11 @@ const QuizCard = ({ quiz, onStartQuiz }) => {
         </p>
 
         {/* Start Button */}
-        <StartQuizButton onStart={handleStart} />
+        {authContext.userType === "Admin" ? (
+          <ViewQuizButton onView={handleView} />
+        ) : (
+          <StartQuizButton onStart={handleStart} />
+        )}
       </div>
     </div>
   );
@@ -295,11 +327,16 @@ const EmptyState = ({ onClearFilters, searchTerm, hasFilters }) => {
 };
 
 // Quiz Grid Component
-const QuizGrid = ({ quizzes, onStartQuiz }) => {
+const QuizGrid = ({ quizzes, onStartQuiz, onViewQuiz }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {quizzes.map((quiz) => (
-        <QuizCard key={quiz.id} quiz={quiz} onStartQuiz={onStartQuiz} />
+        <QuizCard
+          key={quiz.id}
+          quiz={quiz}
+          onStartQuiz={onStartQuiz}
+          onViewQuiz={onViewQuiz}
+        />
       ))}
     </div>
   );
@@ -359,6 +396,527 @@ const FilterBar = ({
   );
 };
 
+// Quiz View/Edit Page Component
+const QuizViewPage = ({ quiz, onSave, onBack }) => {
+  const [editingQuiz, setEditingQuiz] = useState({ ...quiz });
+  const [editingQuestions, setEditingQuestions] = useState([...quiz.questions]);
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
+  const [newQuestion, setNewQuestion] = useState(null);
+  const [isQuizModified, setIsQuizModified] = useState(false);
+
+  // Handle quiz basic info changes
+  const handleQuizChange = (field, value) => {
+    setEditingQuiz((prev) => ({ ...prev, [field]: value }));
+    setIsQuizModified(true);
+  };
+
+  // Handle question changes
+  const handleQuestionChange = (questionId, field, value) => {
+    setEditingQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, [field]: value } : q))
+    );
+    setIsQuizModified(true);
+  };
+
+  // Add new question
+  const handleAddQuestion = (type) => {
+    const newQuestionTemplate = {
+      id: Date.now(),
+      type: type,
+      text: "",
+      options:
+        type === "single" || type === "multiple" ? ["", "", "", ""] : undefined,
+      correctAnswer:
+        type === "single" ? 0 : type === "trueFalse" ? true : undefined,
+      correctAnswers:
+        type === "multiple" ? [] : type === "fillBlank" ? [""] : undefined,
+    };
+    setNewQuestion(newQuestionTemplate);
+  };
+
+  // Save new question
+  const handleSaveNewQuestion = () => {
+    if (newQuestion.text.trim()) {
+      setEditingQuestions((prev) => [...prev, newQuestion]);
+      setNewQuestion(null);
+      setIsQuizModified(true);
+    }
+  };
+
+  // Delete question
+  const handleDeleteQuestion = (questionId) => {
+    setEditingQuestions((prev) => prev.filter((q) => q.id !== questionId));
+    setIsQuizModified(true);
+  };
+
+  // Save all changes
+  const handleSaveQuiz = () => {
+    const updatedQuiz = {
+      ...editingQuiz,
+      questions: editingQuestions,
+      NumOfQuestions: editingQuestions.length,
+    };
+    onSave(updatedQuiz);
+    setIsQuizModified(false);
+  };
+
+  // Question Editor Component
+  const QuestionEditor = ({ question, isNew = false }) => {
+    const [localQuestion, setLocalQuestion] = useState(question);
+
+    const updateLocalQuestion = (field, value) => {
+      setLocalQuestion((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const saveQuestion = () => {
+      if (isNew) {
+        setNewQuestion(localQuestion);
+      } else {
+        handleQuestionChange(question.id, "text", localQuestion.text);
+        if (localQuestion.options) {
+          handleQuestionChange(question.id, "options", localQuestion.options);
+        }
+        if (localQuestion.correctAnswer !== undefined) {
+          handleQuestionChange(
+            question.id,
+            "correctAnswer",
+            localQuestion.correctAnswer
+          );
+        }
+        if (localQuestion.correctAnswers !== undefined) {
+          handleQuestionChange(
+            question.id,
+            "correctAnswers",
+            localQuestion.correctAnswers
+          );
+        }
+        setEditingQuestionId(null);
+      }
+    };
+
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full capitalize">
+              {question.type === "single"
+                ? "Single Choice"
+                : question.type === "multiple"
+                ? "Multiple Choice"
+                : question.type === "trueFalse"
+                ? "True/False"
+                : "Fill in the Blank"}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={saveQuestion}
+              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+            >
+              <Check className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => {
+                if (isNew) {
+                  setNewQuestion(null);
+                } else {
+                  setEditingQuestionId(null);
+                }
+              }}
+              className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Question Text */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Question Text
+          </label>
+          <textarea
+            value={localQuestion.text}
+            onChange={(e) => updateLocalQuestion("text", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            rows="3"
+            placeholder="Enter your question here..."
+          />
+        </div>
+
+        {/* Options for Single/Multiple Choice */}
+        {(question.type === "single" || question.type === "multiple") && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Answer Options
+            </label>
+            {localQuestion.options.map((option, index) => (
+              <div key={index} className="flex items-center gap-3 mb-2">
+                <div className="flex items-center">
+                  {question.type === "single" ? (
+                    <input
+                      type="radio"
+                      name={`correct-${question.id}`}
+                      checked={localQuestion.correctAnswer === index}
+                      onChange={() =>
+                        updateLocalQuestion("correctAnswer", index)
+                      }
+                      className="text-indigo-600 focus:ring-indigo-500"
+                    />
+                  ) : (
+                    <input
+                      type="checkbox"
+                      checked={
+                        localQuestion.correctAnswers?.includes(index) || false
+                      }
+                      onChange={(e) => {
+                        const currentAnswers =
+                          localQuestion.correctAnswers || [];
+                        if (e.target.checked) {
+                          updateLocalQuestion("correctAnswers", [
+                            ...currentAnswers,
+                            index,
+                          ]);
+                        } else {
+                          updateLocalQuestion(
+                            "correctAnswers",
+                            currentAnswers.filter((i) => i !== index)
+                          );
+                        }
+                      }}
+                      className="text-indigo-600 focus:ring-indigo-500"
+                    />
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={option}
+                  onChange={(e) => {
+                    const newOptions = [...localQuestion.options];
+                    newOptions[index] = e.target.value;
+                    updateLocalQuestion("options", newOptions);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder={`Option ${index + 1}`}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* True/False Options */}
+        {question.type === "trueFalse" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Correct Answer
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name={`trueFalse-${question.id}`}
+                  checked={localQuestion.correctAnswer === true}
+                  onChange={() => updateLocalQuestion("correctAnswer", true)}
+                  className="text-indigo-600 focus:ring-indigo-500 mr-2"
+                />
+                True
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name={`trueFalse-${question.id}`}
+                  checked={localQuestion.correctAnswer === false}
+                  onChange={() => updateLocalQuestion("correctAnswer", false)}
+                  className="text-indigo-600 focus:ring-indigo-500 mr-2"
+                />
+                False
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* Fill in the Blank */}
+        {question.type === "fillBlank" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Correct Answers (use ___ in question text for blanks)
+            </label>
+            {(localQuestion.correctAnswers || [""]).map((answer, index) => (
+              <div key={index} className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  value={answer}
+                  onChange={(e) => {
+                    const newAnswers = [
+                      ...(localQuestion.correctAnswers || [""]),
+                    ];
+                    newAnswers[index] = e.target.value;
+                    updateLocalQuestion("correctAnswers", newAnswers);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder={`Answer ${index + 1}`}
+                />
+                {(localQuestion.correctAnswers || []).length > 1 && (
+                  <button
+                    onClick={() => {
+                      const newAnswers = (
+                        localQuestion.correctAnswers || []
+                      ).filter((_, i) => i !== index);
+                      updateLocalQuestion("correctAnswers", newAnswers);
+                    }}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                const currentAnswers = localQuestion.correctAnswers || [""];
+                updateLocalQuestion("correctAnswers", [...currentAnswers, ""]);
+              }}
+              className="text-indigo-600 hover:text-indigo-500 text-sm font-medium"
+            >
+              + Add another answer
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onBack}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Edit Quiz</h1>
+                <p className="text-gray-600">
+                  Manage quiz details and questions
+                </p>
+              </div>
+            </div>
+            {isQuizModified && (
+              <button
+                onClick={handleSaveQuiz}
+                className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Quiz Basic Info */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Quiz Information
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quiz Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editingQuiz.name}
+                    onChange={(e) => handleQuizChange("name", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editingQuiz.description}
+                    onChange={(e) =>
+                      handleQuizChange("description", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    rows="4"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Difficulty Level
+                  </label>
+                  <select
+                    value={editingQuiz.difficulty}
+                    onChange={(e) =>
+                      handleQuizChange("difficulty", e.target.value)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="beginner">Easy</option>
+                    <option value="intermediate">Medium</option>
+                    <option value="advanced">Hard</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Theme
+                  </label>
+                  <input
+                    type="text"
+                    value={editingQuiz.theme}
+                    onChange={(e) => handleQuizChange("theme", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Time Limit (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    value={editingQuiz.timeLimit}
+                    onChange={(e) =>
+                      handleQuizChange("timeLimit", parseInt(e.target.value))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    min="1"
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="text-sm text-gray-600">
+                    <p>
+                      <strong>Total Questions:</strong>{" "}
+                      {editingQuestions.length}
+                    </p>
+                    <p>
+                      <strong>Status:</strong>{" "}
+                      {isQuizModified ? "Modified" : "Saved"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Questions Section */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Questions
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAddQuestion("single")}
+                    className="px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
+                  >
+                    + Single Choice
+                  </button>
+                  <button
+                    onClick={() => handleAddQuestion("multiple")}
+                    className="px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                  >
+                    + Multiple Choice
+                  </button>
+                  <button
+                    onClick={() => handleAddQuestion("trueFalse")}
+                    className="px-3 py-2 text-sm bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors"
+                  >
+                    + True/False
+                  </button>
+                  <button
+                    onClick={() => handleAddQuestion("fillBlank")}
+                    className="px-3 py-2 text-sm bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors"
+                  >
+                    + Fill in the Blank
+                  </button>
+                </div>
+              </div>
+
+              {/* List of Questions */}
+              <div className="space-y-4">
+                {editingQuestions.map((q) =>
+                  editingQuestionId === q.id ? (
+                    <QuestionEditor key={q.id} question={q} />
+                  ) : (
+                    <div
+                      key={q.id}
+                      className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-start"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {q.text || "Untitled question"}
+                        </p>
+                        <p className="text-sm text-gray-500 capitalize">
+                          {q.type.replace(/([A-Z])/g, " $1")}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingQuestionId(q.id)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteQuestion(q.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {/* New Question Editor */}
+                {newQuestion && (
+                  <QuestionEditor question={newQuestion} isNew={true} />
+                )}
+
+                {/* Save new question button */}
+                {newQuestion && (
+                  <div className="flex justify-end mt-4 gap-2">
+                    <button
+                      onClick={handleSaveNewQuestion}
+                      className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      Save New Question
+                    </button>
+                    <button
+                      onClick={() => setNewQuestion(null)}
+                      className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main QuizHub Component
 const QuizHubMain = ({
   quizzes: propQuizzes,
@@ -378,6 +936,116 @@ const QuizHubMain = ({
   const [quizAnswers, setQuizAnswers] = useState({});
 
   // Default sample data if no quizzes are provided
+  // const sampleQuizzes = [
+  //   {
+  //     id: 1,
+  //     name: "JavaScript Fundamentals",
+  //     NumOfQuestions: 15,
+  //     difficulty: "beginner",
+  //     timeLimit: 20,
+  //     theme: "programming",
+  //     description:
+  //       "Test your knowledge of JavaScript basics including variables, functions, arrays, and DOM manipulation. Perfect for beginners starting their web development journey.",
+  //     questions: [
+  //       {
+  //         id: 1,
+  //         type: "single",
+  //         text: "What is the correct way to declare a variable in JavaScript?",
+  //         options: [
+  //           "var myVar;",
+  //           "variable myVar;",
+  //           "v myVar;",
+  //           "declare myVar;",
+  //         ],
+  //         correctAnswer: 0,
+  //       },
+  //       {
+  //         id: 2,
+  //         type: "multiple",
+  //         text: "Which of the following are JavaScript data types?",
+  //         options: ["String", "Number", "Boolean", "Character"],
+  //         correctAnswers: [0, 1, 2],
+  //       },
+  //       {
+  //         id: 3,
+  //         type: "trueFalse",
+  //         text: "JavaScript is a statically typed language.",
+  //         correctAnswer: false,
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "React Advanced Concepts",
+  //     questions: 25,
+  //     difficulty: "advanced",
+  //     timeLimit: 35,
+  //     theme: "programming",
+  //     description:
+  //       "Deep dive into React hooks, context API, performance optimization, and advanced patterns. For experienced React developers.",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "World Geography",
+  //     questions: 30,
+  //     difficulty: "intermediate",
+  //     timeLimit: 25,
+  //     theme: "geography",
+  //     description:
+  //       "Explore countries, capitals, rivers, mountains, and continents. Test your knowledge of world geography and cultures.",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Python Data Structures",
+  //     questions: 20,
+  //     difficulty: "intermediate",
+  //     timeLimit: 30,
+  //     theme: "programming",
+  //     description:
+  //       "Master Python lists, dictionaries, sets, tuples, and advanced data manipulation techniques for better programming skills.",
+  //   },
+  //   {
+  //     id: 5,
+  //     name: "Ancient History",
+  //     questions: 18,
+  //     difficulty: "advanced",
+  //     timeLimit: 40,
+  //     theme: "history",
+  //     description:
+  //       "Journey through ancient civilizations including Egypt, Greece, Rome, and Mesopotamia. Discover the foundations of human civilization.",
+  //   },
+  //   {
+  //     id: 6,
+  //     name: "Basic Mathematics",
+  //     questions: 12,
+  //     difficulty: "beginner",
+  //     timeLimit: 15,
+  //     theme: "mathematics",
+  //     description:
+  //       "Fundamental math concepts including arithmetic, basic algebra, geometry, and problem-solving techniques for students.",
+  //   },
+  //   {
+  //     id: 7,
+  //     name: "Modern Physics",
+  //     questions: 22,
+  //     difficulty: "advanced",
+  //     timeLimit: 45,
+  //     theme: "science",
+  //     description:
+  //       "Quantum mechanics, relativity theory, particle physics, and modern scientific discoveries that shaped our understanding of the universe.",
+  //   },
+  //   {
+  //     id: 8,
+  //     name: "Web Development Basics",
+  //     questions: 16,
+  //     difficulty: "beginner",
+  //     timeLimit: 25,
+  //     theme: "programming",
+  //     description:
+  //       "HTML, CSS, and JavaScript fundamentals for creating responsive websites. Introduction to web development concepts and best practices.",
+  //   },
+  // ];
+
   const sampleQuizzes = [
     {
       id: 1,
@@ -414,79 +1082,65 @@ const QuizHubMain = ({
           text: "JavaScript is a statically typed language.",
           correctAnswer: false,
         },
+        {
+          id: 4,
+          type: "fillBlank",
+          text: "The ___ method is used to add elements to the end of an array, while ___ removes the last element.",
+          correctAnswers: ["push", "pop"],
+        },
       ],
     },
     {
       id: 2,
       name: "React Advanced Concepts",
-      questions: 25,
+      NumOfQuestions: 25,
       difficulty: "advanced",
       timeLimit: 35,
       theme: "programming",
       description:
         "Deep dive into React hooks, context API, performance optimization, and advanced patterns. For experienced React developers.",
+      questions: [
+        {
+          id: 5,
+          type: "single",
+          text: "Which hook is used for managing complex state logic in React?",
+          options: ["useState", "useEffect", "useReducer", "useCallback"],
+          correctAnswer: 2,
+        },
+        {
+          id: 6,
+          type: "multiple",
+          text: "Which of the following are React lifecycle methods?",
+          options: ["componentDidMount", "componentWillUpdate", "render", "useState"],
+          correctAnswers: [0, 1, 2],
+        },
+      ],
     },
     {
       id: 3,
       name: "World Geography",
-      questions: 30,
+      NumOfQuestions: 30,
       difficulty: "intermediate",
       timeLimit: 25,
       theme: "geography",
       description:
         "Explore countries, capitals, rivers, mountains, and continents. Test your knowledge of world geography and cultures.",
-    },
-    {
-      id: 4,
-      name: "Python Data Structures",
-      questions: 20,
-      difficulty: "intermediate",
-      timeLimit: 30,
-      theme: "programming",
-      description:
-        "Master Python lists, dictionaries, sets, tuples, and advanced data manipulation techniques for better programming skills.",
-    },
-    {
-      id: 5,
-      name: "Ancient History",
-      questions: 18,
-      difficulty: "advanced",
-      timeLimit: 40,
-      theme: "history",
-      description:
-        "Journey through ancient civilizations including Egypt, Greece, Rome, and Mesopotamia. Discover the foundations of human civilization.",
-    },
-    {
-      id: 6,
-      name: "Basic Mathematics",
-      questions: 12,
-      difficulty: "beginner",
-      timeLimit: 15,
-      theme: "mathematics",
-      description:
-        "Fundamental math concepts including arithmetic, basic algebra, geometry, and problem-solving techniques for students.",
-    },
-    {
-      id: 7,
-      name: "Modern Physics",
-      questions: 22,
-      difficulty: "advanced",
-      timeLimit: 45,
-      theme: "science",
-      description:
-        "Quantum mechanics, relativity theory, particle physics, and modern scientific discoveries that shaped our understanding of the universe.",
-    },
-    {
-      id: 8,
-      name: "Web Development Basics",
-      questions: 16,
-      difficulty: "beginner",
-      timeLimit: 25,
-      theme: "programming",
-      description:
-        "HTML, CSS, and JavaScript fundamentals for creating responsive websites. Introduction to web development concepts and best practices.",
-    },
-  ];
+      questions: [
+        {
+          id: 7,
+          type: "single",
+          text: "What is the capital of Australia?",
+          options: ["Sydney", "Melbourne", "Canberra", "Perth"],
+          correctAnswer: 2,
+        },
+        {
+          id: 8,
+          type: "trueFalse",
+          text: "The Nile River is the longest river in the world.",
+          correctAnswer: true,
+        },
+      ],
+    }];
 
   // Sample quiz data with questions
   // const sampleQuizzes = [
@@ -597,6 +1251,15 @@ const QuizHubMain = ({
     }
   };
 
+  const handleViewQuiz = (quizId) => {
+    const quiz = sampleQuizzes.find((q) => q.id === quizId);
+    if (quiz) {
+      setSelectedQuiz(quiz);
+      setCurrentPage("viewing");
+      setQuizAnswers({});
+    }
+  };
+
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedTheme("all");
@@ -645,6 +1308,13 @@ const QuizHubMain = ({
           />
         </div>
       );
+    case "viewing":
+      return (
+        <div>
+          <Navbar />
+          <QuizViewPage quiz={selectedQuiz} onBack={handleBackToQuizzes} />
+        </div>
+      );
     default:
       return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -682,6 +1352,7 @@ const QuizHubMain = ({
               <QuizGrid
                 quizzes={filteredQuizzes}
                 onStartQuiz={handleStartQuiz}
+                onViewQuiz={handleViewQuiz}
               />
             ) : (
               <EmptyState

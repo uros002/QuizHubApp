@@ -123,8 +123,7 @@ const DropdownFilter = ({
 
 // Difficulty Stars Component
 const DifficultyStars = ({ difficulty }) => {
-  const starCount =
-    difficulty === "beginner" ? 1 : difficulty === "intermediate" ? 2 : 3;
+  const starCount = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
 
   return (
     <div className="flex gap-1">
@@ -144,11 +143,11 @@ const DifficultyStars = ({ difficulty }) => {
 const DifficultyBadge = ({ difficulty }) => {
   const getDifficultyColor = (level) => {
     switch (level) {
-      case "beginner":
+      case "easy":
         return "bg-green-100 text-green-800 border-green-200";
-      case "intermediate":
+      case "medium":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "advanced":
+      case "hard":
         return "bg-red-100 text-red-800 border-red-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
@@ -766,9 +765,9 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="beginner">Easy</option>
-                    <option value="intermediate">Medium</option>
-                    <option value="advanced">Hard</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
                   </select>
                 </div>
 
@@ -837,78 +836,159 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                   </button>
                   <button
                     onClick={() => handleAddQuestion("trueFalse")}
-                    className="px-3 py-2 text-sm bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors"
+                    className="px-3 py-2 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
                   >
                     + True/False
                   </button>
                   <button
                     onClick={() => handleAddQuestion("fillBlank")}
-                    className="px-3 py-2 text-sm bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors"
+                    className="px-3 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
                   >
-                    + Fill in the Blank
+                    + Fill Blank
                   </button>
                 </div>
               </div>
 
-              {/* List of Questions */}
-              <div className="space-y-4">
-                {editingQuestions.map((q) =>
-                  editingQuestionId === q.id ? (
-                    <QuestionEditor key={q.id} question={q} />
-                  ) : (
-                    <div
-                      key={q.id}
-                      className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-start"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {q.text || "Untitled question"}
-                        </p>
-                        <p className="text-sm text-gray-500 capitalize">
-                          {q.type.replace(/([A-Z])/g, " $1")}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setEditingQuestionId(q.id)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteQuestion(q.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  )
-                )}
-
-                {/* New Question Editor */}
-                {newQuestion && (
+              {/* New Question Editor */}
+              {newQuestion && (
+                <div className="mb-6">
+                  <h3 className="text-md font-medium text-gray-900 mb-3">
+                    New Question
+                  </h3>
                   <QuestionEditor question={newQuestion} isNew={true} />
-                )}
-
-                {/* Save new question button */}
-                {newQuestion && (
-                  <div className="flex justify-end mt-4 gap-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={handleSaveNewQuestion}
-                      className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                      disabled={!newQuestion.text.trim()}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
-                      Save New Question
+                      Add Question
                     </button>
                     <button
                       onClick={() => setNewQuestion(null)}
-                      className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                     >
                       Cancel
                     </button>
                   </div>
-                )}
+                </div>
+              )}
+
+              {/* Existing Questions */}
+              <div className="space-y-4">
+                {editingQuestions.map((question, index) => (
+                  <div
+                    key={question.id}
+                    className="border border-gray-200 rounded-lg p-4"
+                  >
+                    {editingQuestionId === question.id ? (
+                      <QuestionEditor question={question} />
+                    ) : (
+                      <div>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center justify-center w-8 h-8 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+                              {index + 1}
+                            </span>
+                            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full capitalize">
+                              {question.type === "single"
+                                ? "Single Choice"
+                                : question.type === "multiple"
+                                ? "Multiple Choice"
+                                : question.type === "trueFalse"
+                                ? "True/False"
+                                : "Fill in the Blank"}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setEditingQuestionId(question.id)}
+                              className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteQuestion(question.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="mb-3">
+                          <p className="text-gray-900 font-medium">
+                            {question.text || "Untitled question"}
+                          </p>
+                        </div>
+
+                        {/* Show options for choice questions */}
+                        {(question.type === "single" ||
+                          question.type === "multiple") &&
+                          question.options && (
+                            <div className="space-y-2">
+                              {question.options.map((option, optIndex) => (
+                                <div
+                                  key={optIndex}
+                                  className="flex items-center gap-2 text-sm text-gray-600"
+                                >
+                                  <div
+                                    className={`w-4 h-4 rounded ${
+                                      (question.type === "single" &&
+                                        question.correctAnswer === optIndex) ||
+                                      (question.type === "multiple" &&
+                                        question.correctAnswers?.includes(
+                                          optIndex
+                                        ))
+                                        ? "bg-green-500"
+                                        : "bg-gray-200"
+                                    }`}
+                                  />
+                                  <span>
+                                    {option || `Option ${optIndex + 1}`}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                        {/* Show answer for true/false */}
+                        {question.type === "trueFalse" && (
+                          <div className="text-sm text-gray-600">
+                            <span>Correct answer: </span>
+                            <span className="font-medium text-green-600">
+                              {question.correctAnswer ? "True" : "False"}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Show answers for fill in the blank */}
+                        {question.type === "fillBlank" &&
+                          question.correctAnswers && (
+                            <div className="text-sm text-gray-600">
+                              <span>Correct answers: </span>
+                              <span className="font-medium text-green-600">
+                                {question.correctAnswers.join(", ")}
+                              </span>
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
+
+              {editingQuestions.length === 0 && (
+                <div className="text-center py-12">
+                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No questions yet
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Add your first question to get started.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1111,7 +1191,12 @@ const QuizHubMain = ({
           id: 6,
           type: "multiple",
           text: "Which of the following are React lifecycle methods?",
-          options: ["componentDidMount", "componentWillUpdate", "render", "useState"],
+          options: [
+            "componentDidMount",
+            "componentWillUpdate",
+            "render",
+            "useState",
+          ],
           correctAnswers: [0, 1, 2],
         },
       ],
@@ -1140,7 +1225,8 @@ const QuizHubMain = ({
           correctAnswer: true,
         },
       ],
-    }];
+    },
+  ];
 
   // Sample quiz data with questions
   // const sampleQuizzes = [
@@ -1260,6 +1346,19 @@ const QuizHubMain = ({
     }
   };
 
+  const handleSaveQuiz = (updatedQuiz) => {
+    // Here you would typically save to your backend
+    console.log("Saving quiz:", updatedQuiz);
+    // For now, just update the sample data
+    const quizIndex = sampleQuizzes.findIndex((q) => q.id === updatedQuiz.id);
+    if (quizIndex !== -1) {
+      sampleQuizzes[quizIndex] = updatedQuiz;
+    }
+    // Go back to main page after saving
+    setCurrentPage("main");
+    setSelectedQuiz(null);
+  };
+
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedTheme("all");
@@ -1353,6 +1452,7 @@ const QuizHubMain = ({
                 quizzes={filteredQuizzes}
                 onStartQuiz={handleStartQuiz}
                 onViewQuiz={handleViewQuiz}
+                onSaveQuiz={handleSaveQuiz}
               />
             ) : (
               <EmptyState

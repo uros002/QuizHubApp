@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useNavigate, Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import LoginPage from "./Pages/LoginPage";
 import AuthContext from "../context/AuthContext";
@@ -20,10 +20,11 @@ import QuizHubMain, {
 } from "./Pages/Dashboard";
 import QuizResultsPage from "./Pages/MyResults";
 import QuizSystem from "./Pages/QuizTakingPage";
+import QuizCreatePage from "./Pages/QuizCreatePage";
 
 const Router = () => {
   const authContext = React.useContext(AuthContext);
-
+  const navigate = useNavigate();
   return (
     <Routes>
       <Route
@@ -38,6 +39,25 @@ const Router = () => {
       <Route
         path="/my-results"
         element={authContext.token ? <QuizResultsPage /> : <Navigate to="/" />}
+      />
+      <Route
+        path="/create-quiz"
+        element={
+          authContext.token ? (
+            <QuizCreatePage
+              onSave={(newQuiz) => {
+                // Handle saving the quiz to your backend
+                console.log("New quiz created:", newQuiz);
+              }}
+              onCancel={() => {
+                // Handle navigation back
+                navigate("/main");
+              }}
+            />
+          ) : (
+            <Navigate to="/" />
+          )
+        }
       />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

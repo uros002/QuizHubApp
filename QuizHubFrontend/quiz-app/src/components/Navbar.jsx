@@ -26,12 +26,22 @@ const Navbar = () => {
         >
           Home
         </Link>
-        <Link
-          to="/my-results"
-          className="hover:text-purple-200 transition-colors text-lg"
-        >
-          My Results
-        </Link>
+        {authContext.userType === "Admin" ? (
+          <Link
+            to="/create-quiz"
+            className="hover:text-purple-200 transition-colors text-lg"
+          >
+            New Quiz
+          </Link>
+        ) : (
+          <Link
+            to="/my-results"
+            className="hover:text-purple-200 transition-colors text-lg"
+          >
+            My Results
+          </Link>
+        )}
+
         <button
           onClick={handleLogout}
           className="bg-white text-purple-700 font-semibold px-4 py-2 rounded hover:bg-purple-100 transition"

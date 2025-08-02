@@ -31,7 +31,7 @@ namespace QuizHubBackend.Controllers
             {
                 return Unauthorized(token);
             }
-            else if(token == "User does not exist!")
+            else if(token == "User is not active!")
             {
                 return BadRequest(token);
             }

@@ -7,6 +7,8 @@ namespace QuizHubBackend.Models
 {
     public enum AnswerType
     {
+        OneCorrect,
+        TrueFalse,
         MultipleChoice,
         FillTheBlank
     }

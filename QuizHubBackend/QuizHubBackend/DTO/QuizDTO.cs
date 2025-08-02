@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace QuizHubBackend.DTO
 {
-    public class QuizDto
+    public class QuizDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -16,7 +16,7 @@ namespace QuizHubBackend.DTO
     
          public string Category { get; set; } // e.g., "programming", "history", etc.
 
-        public List<QuestionDto> Questions { get; set; } // optional: only include when needed
+        public List<QuestionDTO> Questions { get; set; } // optional: only include when needed
 }
 
 }

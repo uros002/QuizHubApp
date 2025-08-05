@@ -12,63 +12,57 @@ export const AnswerType = {
 };
 export class Answer {
   constructor({
-    id = 0,
+    //id = 0,
     text = "",
     isCorrect = false,
     questionId = 0,
-    question = null,
+    //question = null,
   } = {}) {
-    this.id = id;
+    //this.id = id;
     this.text = text;
     this.isCorrect = isCorrect;
     this.questionId = questionId;
-    this.question = question;
+    //this.question = question;
   }
 }
 export class Question {
   constructor({
-    id = 0,
+    //id = 0,
     body = "",
     answers = [],
     answerType = AnswerType.OneCorrect,
     points = 0,
     quizId = 0,
-    quiz = null,
+    //quiz = null,
   } = {}) {
-    this.id = id;
+    //this.id = id;
     this.body = body;
     this.answers = answers; // Array of Answer
     this.answerType = answerType;
     this.points = points;
     this.quizId = quizId;
-    this.quiz = quiz;
+    //this.quiz = quiz;
   }
 }
 export class Quiz {
   constructor({
-    id = 0,
+    //id = 0,
     name = "",
     numOfQuestions = 0,
     timeDuration = 0,
     description = "",
     difficulty = QuizDifficulty.Easy,
+    theme = "",
     questions = [],
   } = {}) {
-    this.id = id;
+    //this.id = id;
     this.name = name;
     this.numOfQuestions = numOfQuestions;
     this.timeDuration = timeDuration; // in seconds
     this.description = description;
     this.difficulty = difficulty;
+    this.theme = theme;
     this.questions = questions; // Array of Question
-  }
-}
-export class QuizResultAnswer {
-  constructor({ id = 0, text = "", quizResultId = 0, quizResult = null } = {}) {
-    this.id = id;
-    this.text = text;
-    this.quizResultId = quizResultId;
-    this.quizResult = quizResult;
   }
 }
 

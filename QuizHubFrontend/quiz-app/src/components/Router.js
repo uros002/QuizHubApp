@@ -21,6 +21,7 @@ import QuizHubMain, {
 import QuizResultsPage from "./Pages/MyResults";
 import QuizSystem from "./Pages/QuizTakingPage";
 import QuizCreatePage from "./Pages/QuizCreatePage";
+import QuizCreatePage2 from "./Pages/QuizCreatePage2";
 
 const Router = () => {
   const authContext = React.useContext(AuthContext);
@@ -43,7 +44,7 @@ const Router = () => {
       <Route
         path="/create-quiz"
         element={
-          authContext.token ? (
+          authContext.userType === "Admin" ? (
             <QuizCreatePage
               onSave={(newQuiz) => {
                 // Handle saving the quiz to your backend

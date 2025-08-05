@@ -24,6 +24,15 @@ namespace QuizHubBackend.Models
 
         public List<Question> Questions { get; set; }
 
+        public int? UserId { get; set; }
+
+        public User User { get; set; }
+
+        public int Version { get; set; }
+
+        public bool IsDeleted { get; set; }
+
+        public string Category { get; set; }
         
     }
 }

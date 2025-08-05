@@ -15,9 +15,9 @@ namespace QuizHubBackend.Models
 
         public Quiz Quiz { get; set; }
         public int QuizId {get;set;}
-        public List<QuizResultAnswer> SelectedAnswers { get; set; }
+       // public List<QuizResultAnswer> SelectedAnswers { get; set; }
 
-        public int RightAnwers { get; set; }
+        //public int RightAnwers { get; set; }
 
         public int Points { get; set; }
 

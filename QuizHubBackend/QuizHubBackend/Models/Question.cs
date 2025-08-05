@@ -24,5 +24,9 @@ namespace QuizHubBackend.Models
 
         public Quiz Quiz { get; set; }
 
+       // public int Version { get; set; }
+
+       
+
     }
 }

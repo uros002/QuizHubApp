@@ -15,6 +15,6 @@ namespace QuizHubBackend.DTO
     public int RightAnwers { get; set; }
     public int TimeDuration { get; set; }
     public DateTime DateOfCompletition { get; set; }
-    public List<QuizResultAnswerDTO> SelectedAnswers { get; set; }
+    //public List<QuizResultAnswerDTO> SelectedAnswers { get; set; }
     }
 }

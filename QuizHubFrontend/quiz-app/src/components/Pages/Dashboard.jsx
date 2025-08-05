@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -29,6 +29,8 @@ import {
 } from "./QuizTakingPage";
 import Navbar from "../Navbar";
 import AuthContext from "../../context/AuthContext";
+import { getAllQuizzes } from "../Service";
+import "../Models";
 
 // Header Component
 const QuizHubHeader = ({
@@ -999,7 +1001,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
 
 // Main QuizHub Component
 const QuizHubMain = ({
-  quizzes: propQuizzes,
+  //quizzes: propQuizzes,
   onStartQuiz: propOnStartQuiz,
   title = "QuizHub",
   subtitle = "Test your knowledge with our curated collection of quizzes",
@@ -1009,11 +1011,26 @@ const QuizHubMain = ({
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
+  const [allQuizzes, setAllQuizzes] = useState([]);
 
   const path = window.location.pathname.replace("/", "");
   const [currentPage, setCurrentPage] = useState(path || "main"); // main, taking, results
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const response = await getAllQuizzes();
+
+        setAllQuizzes(response);
+      } catch (error) {
+        console.error("Error fetching quizzes:", error);
+      }
+    };
+
+    fetchQuizzes();
+  }, []);
 
   // Default sample data if no quizzes are provided
   // const sampleQuizzes = [
@@ -1298,7 +1315,7 @@ const QuizHubMain = ({
   //   },
   // ];
 
-  const quizzes = propQuizzes || sampleQuizzes;
+  const quizzes = allQuizzes || sampleQuizzes;
 
   // Extract unique themes and difficulties from quizzes
   const themes = ["all", ...new Set(quizzes.map((quiz) => quiz.theme))];

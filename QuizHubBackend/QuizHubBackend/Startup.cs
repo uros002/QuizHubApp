@@ -98,6 +98,7 @@ namespace QuizHubBackend
 
             services.AddScoped<DbContext, AppDbContext>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IQuizService, QuizService>();
 
         }
 

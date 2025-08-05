@@ -45,7 +45,7 @@ const Router = () => {
         path="/create-quiz"
         element={
           authContext.userType === "Admin" ? (
-            <QuizCreatePage
+            <QuizCreatePage2
               onSave={(newQuiz) => {
                 // Handle saving the quiz to your backend
                 console.log("New quiz created:", newQuiz);

@@ -52,7 +52,7 @@ export class Quiz {
     timeDuration = 0,
     description = "",
     difficulty = QuizDifficulty.Easy,
-    theme = "",
+    category = "",
     questions = [],
   } = {}) {
     //this.id = id;
@@ -61,7 +61,7 @@ export class Quiz {
     this.timeDuration = timeDuration; // in seconds
     this.description = description;
     this.difficulty = difficulty;
-    this.theme = theme;
+    this.category = category;
     this.questions = questions; // Array of Question
   }
 }

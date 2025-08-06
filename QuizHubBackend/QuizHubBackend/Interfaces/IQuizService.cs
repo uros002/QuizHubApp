@@ -10,5 +10,7 @@ namespace QuizHubBackend.Interfaces
     {
 
         Task<List<QuizDTO>> GetAllQuizzes();
+
+        Task<String> CreateQuiz(QuizDTO quizDTO);
     }
 }

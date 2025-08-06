@@ -16,15 +16,14 @@ export const getAllQuizzes = async () => {
 
 export const createQuiz = async (quizData) => {
   try {
-    const response = await api.post("api/quizzes/createQuiz", {
+    const response = await api.post("api/quizzes/createQuiz", quizData, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      body: JSON.stringify(quizData),
     });
     if (response.status === 200) {
-      return "OK"; // Assuming the API returns the created quiz
+      return response.data; // Assuming the API returns the created quiz
     }
   } catch (error) {
     console.error("Error creating quiz:", error);

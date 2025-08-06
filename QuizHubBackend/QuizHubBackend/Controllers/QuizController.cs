@@ -28,5 +28,14 @@ namespace QuizHubBackend.Controllers
             List<QuizDTO> quizzes = await _quizService.GetAllQuizzes();
             return Ok(quizzes);
         }
+
+        [Authorize]
+        [HttpPost("createQuiz")]
+        public async Task<IActionResult> CreateQuiz([FromBody]QuizDTO quizDTO)
+        {
+            string result = await _quizService.CreateQuiz(quizDTO);
+            return Ok(result);
+        }
+
     }
 }

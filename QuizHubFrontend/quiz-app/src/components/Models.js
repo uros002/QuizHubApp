@@ -46,7 +46,7 @@ export class Question {
 }
 export class Quiz {
   constructor({
-    //id = 0,
+    id = 0,
     name = "",
     numOfQuestions = 0,
     timeDuration = 0,
@@ -55,7 +55,7 @@ export class Quiz {
     category = "",
     questions = [],
   } = {}) {
-    //this.id = id;
+    this.id = id;
     this.name = name;
     this.numOfQuestions = numOfQuestions;
     this.timeDuration = timeDuration; // in seconds

@@ -22,7 +22,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
     name: "",
     description: "",
     difficulty: QuizDifficulty.Easy,
-    theme: "",
+    category: "",
     timeLimit: 15,
   });
 
@@ -76,7 +76,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
   };
 
   // Save new question
-  const handleSaveNewQuestion = () => {
+  const handleSaveNewQuestion = (newQuestion) => {
     if (validateQuestion(newQuestion)) {
       setQuestions((prev) => [...prev, newQuestion]);
       setNewQuestion(null);
@@ -148,8 +148,8 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
       newErrors.description = "Quiz description is required";
     }
 
-    if (!quizData.theme.trim()) {
-      newErrors.theme = "Quiz theme is required";
+    if (!quizData.category.trim()) {
+      newErrors.category = "Quiz category is required";
     }
 
     if (questions.length === 0) {
@@ -179,7 +179,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
           return new Answer({
             text: option,
             isCorrect: isCorrect,
-            questionId: index, // Will be set properly by backend
+            //questionId: index, // Will be set properly by backend
           });
         });
       } else if (q.type === "trueFalse") {
@@ -187,12 +187,12 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
           new Answer({
             text: "True",
             isCorrect: q.correctAnswer === true,
-            questionId: index,
+            // questionId: index,
           }),
           new Answer({
             text: "False",
             isCorrect: q.correctAnswer === false,
-            questionId: index,
+            //questionId: index,
           }),
         ];
       } else if (q.type === "fillBlank") {
@@ -202,7 +202,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
             new Answer({
               text: answer,
               isCorrect: true,
-              questionId: index,
+              //questionId: index,
             })
         );
       }
@@ -212,7 +212,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
         answers: answers,
         answerType: mapQuestionTypeToAnswerType(q.type),
         points: q.points || 1,
-        quizId: 0, // Will be set by backend
+        //quizId: 0, // Will be set by backend
       });
     });
   };
@@ -236,7 +236,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
         timeDuration: quizData.timeLimit * 60, // Convert minutes to seconds
         description: quizData.description,
         difficulty: quizData.difficulty,
-        theme: quizData.theme,
+        category: quizData.category,
         questions: convertedQuestions,
       });
 
@@ -259,7 +259,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
           name: "",
           description: "",
           difficulty: QuizDifficulty.Easy,
-          theme: "",
+          category: "",
           timeLimit: 15,
         });
         setQuestions([]);
@@ -282,6 +282,7 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
     };
 
     const handleSave = () => {
+      console.log(localQuestion.text || "Untitled question");
       onSave(localQuestion);
     };
 
@@ -618,22 +619,24 @@ const QuizCreatePage2 = ({ onSave, onCancel }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Theme *
+                    Category *
                   </label>
                   <input
                     type="text"
-                    value={quizData.theme}
-                    onChange={(e) => handleQuizChange("theme", e.target.value)}
+                    value={quizData.category}
+                    onChange={(e) =>
+                      handleQuizChange("category", e.target.value)
+                    }
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      errors.theme ? "border-red-300" : "border-gray-300"
+                      errors.category ? "border-red-300" : "border-gray-300"
                     }`}
                     placeholder="e.g., programming, history, science"
                     disabled={isSubmitting}
                   />
-                  {errors.theme && (
+                  {errors.category && (
                     <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
-                      {errors.theme}
+                      {errors.category}
                     </p>
                   )}
                 </div>

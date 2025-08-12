@@ -33,6 +33,8 @@ namespace QuizHubBackend.Models
         public bool IsDeleted { get; set; }
 
         public string Category { get; set; }
+
+        public int? ParentQuiz { get; set; }
         
     }
 }

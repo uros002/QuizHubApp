@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import * as jwt from "jwt-decode";
 import api from "../ApiMaker";
 
 const AuthContext = React.createContext();
@@ -40,7 +40,8 @@ export const AuthProvider = (props) => {
   const userType = () => {
     try {
       if (!token) return null;
-      const decodedToken = jwtDecode(token);
+      const decodedToken = jwt.jwtDecode(token);
+      console.log(" token:", token);
       const role =
         decodedToken[
           "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
@@ -53,6 +54,23 @@ export const AuthProvider = (props) => {
     }
   };
 
+  const userId = () => {
+    try {
+      if (!token) return null;
+      const decodedToken = jwt.jwtDecode(token);
+
+      const userId =
+        decodedToken[
+          //"http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+        ] || decodedToken["sub"]; // fallback if you ever use plain "sub"
+      console.log("Decoded token userId:", userId);
+      return userId || null;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
   return (
     <AuthContext.Provider
       value={{
@@ -60,6 +78,7 @@ export const AuthProvider = (props) => {
         login: loginHandler,
         logout: logoutHandler,
         userType: userType(),
+        userId: userId(),
       }}
     >
       {props.children}

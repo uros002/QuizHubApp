@@ -14,6 +14,8 @@ import {
 // import "../../index.css";
 import "../../../src/index.css";
 import AuthContext from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 // Login Component
 const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +23,7 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
     username: "",
     password: "",
   });
-
+  const navigate = useNavigate();
   const authContext = React.useContext(AuthContext);
 
   const [errors, setErrors] = useState({});
@@ -45,14 +47,16 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
     // e.preventDefault();
     if (validateLogin()) {
       await authContext.login(loginData);
-      var newError = {};
-      newError.password = localStorage.getItem("PasswordError")
-        ? localStorage.getItem("PasswordError")
-        : null;
-      newError.username = localStorage.getItem("UsernameError")
-        ? localStorage.getItem("UsernameError")
-        : null;
+      var newError = {
+        password: localStorage.getItem("PasswordError") || null,
+        username: localStorage.getItem("UsernameError") || null,
+      };
+      console.log("New error:", newError);
       setErrors(newError); // Clear errors on successful login
+      //if (newError.password === null && newError.username === null) {
+      console.log("AuthContext token: ", authContext.token);
+      navigate("/main");
+      //}
     }
   };
 

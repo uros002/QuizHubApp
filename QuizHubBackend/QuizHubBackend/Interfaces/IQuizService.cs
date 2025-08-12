@@ -11,6 +11,12 @@ namespace QuizHubBackend.Interfaces
 
         Task<List<QuizDTO>> GetAllQuizzes();
 
+        Task<List<QuizDTO>> GetAllQuizzesForResults();
+
         Task<String> CreateQuiz(QuizDTO quizDTO);
+
+        Task<String> DoQuiz(int quizId, QuizCompletitionDTO quizCompletitionDTO);
+
+        Task<List<QuizResultDTO>> GetMyResults(int userId);
     }
 }

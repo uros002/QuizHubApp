@@ -52,6 +52,8 @@ namespace QuizHubBackend.Services
                     claims.Add(new Claim(ClaimTypes.Role, "Admin"));
                 }
 
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+
                 SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey.Value));
                 var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
                 var tokenOptions = new JwtSecurityToken(

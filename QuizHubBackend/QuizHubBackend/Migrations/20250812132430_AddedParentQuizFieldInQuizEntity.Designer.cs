@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QuizHubBackend.Context;
 
 namespace QuizHubBackend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250812132430_AddedParentQuizFieldInQuizEntity")]
+    partial class AddedParentQuizFieldInQuizEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,9 +56,6 @@ namespace QuizHubBackend.Migrations
 
                     b.Property<string>("Body")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ParentQuestion")
-                        .HasColumnType("int");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");

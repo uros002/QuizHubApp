@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -30,127 +30,130 @@ import {
 } from "recharts";
 
 import Navbar from "../Navbar";
+import * as Model from "../Models";
+import { getMyResults, getAllQuizzesForResults } from "../Service";
+import AuthContext from "../../context/AuthContext";
 
-// Mock data for quiz results
-const mockResults = [
-  {
-    id: 1,
-    quizId: 1,
-    quizName: "JavaScript Fundamentals",
-    theme: "programming",
-    difficulty: "beginner",
-    dateTaken: "2024-01-15",
-    pointsEarned: 85,
-    totalPoints: 100,
-    percentage: 85,
-    timeSpent: 12, // minutes
-    totalQuestions: 15,
-    correctAnswers: 13,
-    questions: [
-      {
-        id: 1,
-        text: "What is the correct way to declare a variable in JavaScript?",
-        userAnswer: "var myVar;",
-        correctAnswer: "var myVar;",
-        isCorrect: true,
-        type: "single",
-      },
-      {
-        id: 2,
-        text: "Which of the following are JavaScript data types?",
-        userAnswer: "String, Number, Boolean",
-        correctAnswer: "String, Number, Boolean",
-        isCorrect: true,
-        type: "multiple",
-      },
-      {
-        id: 3,
-        text: "JavaScript is a statically typed language.",
-        userAnswer: "False",
-        correctAnswer: "False",
-        isCorrect: true,
-        type: "trueFalse",
-      },
-    ],
-  },
-  {
-    id: 2,
-    quizId: 1,
-    quizName: "JavaScript Fundamentals",
-    theme: "programming",
-    difficulty: "beginner",
-    dateTaken: "2024-01-20",
-    pointsEarned: 92,
-    totalPoints: 100,
-    percentage: 92,
-    timeSpent: 10,
-    totalQuestions: 15,
-    correctAnswers: 14,
-    questions: [
-      {
-        id: 1,
-        text: "What is the correct way to declare a variable in JavaScript?",
-        userAnswer: "var myVar;",
-        correctAnswer: "var myVar;",
-        isCorrect: true,
-        type: "single",
-      },
-      {
-        id: 2,
-        text: "Which of the following are JavaScript data types?",
-        userAnswer: "String, Number, Boolean",
-        correctAnswer: "String, Number, Boolean",
-        isCorrect: true,
-        type: "multiple",
-      },
-    ],
-  },
-  {
-    id: 3,
-    quizId: 2,
-    quizName: "React Advanced Concepts",
-    theme: "programming",
-    difficulty: "advanced",
-    dateTaken: "2024-01-18",
-    pointsEarned: 75,
-    totalPoints: 100,
-    percentage: 75,
-    timeSpent: 25,
-    totalQuestions: 20,
-    correctAnswers: 15,
-    questions: [],
-  },
-  {
-    id: 4,
-    quizId: 3,
-    quizName: "World Geography",
-    theme: "geography",
-    difficulty: "intermediate",
-    dateTaken: "2024-01-22",
-    pointsEarned: 68,
-    totalPoints: 100,
-    percentage: 68,
-    timeSpent: 18,
-    totalQuestions: 25,
-    correctAnswers: 17,
-    questions: [],
-  },
-  {
-    id: 5,
-    quizId: 1,
-    quizName: "JavaScript Fundamentals",
-    theme: "programming",
-    difficulty: "beginner",
-    dateTaken: "2024-01-25",
-    pointsEarned: 96,
-    totalPoints: 100,
-    percentage: 96,
-    timeSpent: 9,
-    totalQuestions: 15,
-    correctAnswers: 14,
-    questions: [],
-  },
-];
+// // Mock data for quiz results
+// const mockResults = [
+//   {
+//     id: 1,
+//     quizId: 1,
+//     quizName: "JavaScript Fundamentals",
+//     theme: "programming",
+//     difficulty: "beginner",
+//     dateTaken: "2024-01-15",
+//     pointsEarned: 85,
+//     totalPoints: 100,
+//     percentage: 85,
+//     timeSpent: 12, // minutes
+//     totalQuestions: 15,
+//     correctAnswers: 13,
+//     questions: [
+//       {
+//         id: 1,
+//         text: "What is the correct way to declare a variable in JavaScript?",
+//         userAnswer: "var myVar;",
+//         correctAnswer: "var myVar;",
+//         isCorrect: true,
+//         type: "single",
+//       },
+//       {
+//         id: 2,
+//         text: "Which of the following are JavaScript data types?",
+//         userAnswer: "String, Number, Boolean",
+//         correctAnswer: "String, Number, Boolean",
+//         isCorrect: true,
+//         type: "multiple",
+//       },
+//       {
+//         id: 3,
+//         text: "JavaScript is a statically typed language.",
+//         userAnswer: "False",
+//         correctAnswer: "False",
+//         isCorrect: true,
+//         type: "trueFalse",
+//       },
+//     ],
+//   },
+//   {
+//     id: 2,
+//     quizId: 1,
+//     quizName: "JavaScript Fundamentals",
+//     theme: "programming",
+//     difficulty: "beginner",
+//     dateTaken: "2024-01-20",
+//     pointsEarned: 92,
+//     totalPoints: 100,
+//     percentage: 92,
+//     timeSpent: 10,
+//     totalQuestions: 15,
+//     correctAnswers: 14,
+//     questions: [
+//       {
+//         id: 1,
+//         text: "What is the correct way to declare a variable in JavaScript?",
+//         userAnswer: "var myVar;",
+//         correctAnswer: "var myVar;",
+//         isCorrect: true,
+//         type: "single",
+//       },
+//       {
+//         id: 2,
+//         text: "Which of the following are JavaScript data types?",
+//         userAnswer: "String, Number, Boolean",
+//         correctAnswer: "String, Number, Boolean",
+//         isCorrect: true,
+//         type: "multiple",
+//       },
+//     ],
+//   },
+//   {
+//     id: 3,
+//     quizId: 2,
+//     quizName: "React Advanced Concepts",
+//     theme: "programming",
+//     difficulty: "advanced",
+//     dateTaken: "2024-01-18",
+//     pointsEarned: 75,
+//     totalPoints: 100,
+//     percentage: 75,
+//     timeSpent: 25,
+//     totalQuestions: 20,
+//     correctAnswers: 15,
+//     questions: [],
+//   },
+//   {
+//     id: 4,
+//     quizId: 3,
+//     quizName: "World Geography",
+//     theme: "geography",
+//     difficulty: "intermediate",
+//     dateTaken: "2024-01-22",
+//     pointsEarned: 68,
+//     totalPoints: 100,
+//     percentage: 68,
+//     timeSpent: 18,
+//     totalQuestions: 25,
+//     correctAnswers: 17,
+//     questions: [],
+//   },
+//   {
+//     id: 5,
+//     quizId: 1,
+//     quizName: "JavaScript Fundamentals",
+//     theme: "programming",
+//     difficulty: "beginner",
+//     dateTaken: "2024-01-25",
+//     pointsEarned: 96,
+//     totalPoints: 100,
+//     percentage: 96,
+//     timeSpent: 9,
+//     totalQuestions: 15,
+//     correctAnswers: 14,
+//     questions: [],
+//   },
+// ];
 
 // Search Bar Component
 const SearchBar = ({ searchTerm, onSearchChange }) => {
@@ -219,11 +222,11 @@ const FilterDropdown = ({
 const DifficultyBadge = ({ difficulty }) => {
   const getDifficultyColor = (level) => {
     switch (level) {
-      case "beginner":
+      case "Easy":
         return "bg-green-100 text-green-800 border-green-200";
-      case "intermediate":
+      case "Medium":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "advanced":
+      case "Hard":
         return "bg-red-100 text-red-800 border-red-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
@@ -301,7 +304,7 @@ const ProgressChart = ({ data }) => {
   const chartData = data.map((result, index) => ({
     attempt: `Attempt ${index + 1}`,
     score: result.percentage,
-    date: new Date(result.dateTaken).toLocaleDateString(),
+    date: new Date(result.dateOfCompletition).toLocaleDateString(),
   }));
 
   return (
@@ -334,7 +337,37 @@ const ProgressChart = ({ data }) => {
 };
 
 // Question Review Component
-const QuestionReview = ({ questions }) => {
+const QuestionReview = ({ result }) => {
+  const mergedQuestions = result.correctQuestions.map((q, index) => {
+    const userAnswers =
+      result.myQuestions
+        .find((mq) => mq.parentQuestion === q.id)
+        ?.answers.map((a) => a.text) || [];
+    const correctAnswers = q.answers
+      .filter((a) => a.isCorrect)
+      .map((a) => a.text);
+
+    console.log("userAnswers:", userAnswers);
+
+    console.log("correctAnswers:", correctAnswers);
+
+    return {
+      id: q.id,
+      body: q.body,
+      userAnswer: userAnswers || null,
+      correctAnswer: correctAnswers || null,
+      isCorrect:
+        correctAnswers.length === userAnswers.length &&
+        correctAnswers.every((ans) =>
+          userAnswers.some(
+            (userAns) => userAns.toLowerCase() === ans.toLowerCase()
+          )
+        ),
+    };
+  });
+
+  console.log("mergedQuestions:", mergedQuestions);
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -342,7 +375,7 @@ const QuestionReview = ({ questions }) => {
         Question Review
       </h3>
       <div className="space-y-4">
-        {questions.map((question, index) => (
+        {mergedQuestions.map((question, index) => (
           <div
             key={question.id}
             className={`p-4 rounded-lg border-2 ${
@@ -353,7 +386,7 @@ const QuestionReview = ({ questions }) => {
           >
             <div className="flex items-start justify-between mb-3">
               <h4 className="font-medium text-gray-900 flex-1">
-                {index + 1}. {question.text}
+                {index + 1}. {question.body}
               </h4>
               {question.isCorrect ? (
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 ml-2" />
@@ -370,7 +403,9 @@ const QuestionReview = ({ questions }) => {
                     question.isCorrect ? "text-green-700" : "text-red-700"
                   }
                 >
-                  {question.userAnswer || "No answer"}
+                  {Array.isArray(question.userAnswer)
+                    ? question.userAnswer.join(", ")
+                    : question.userAnswer || "No answer"}
                 </span>
               </div>
               {!question.isCorrect && (
@@ -379,7 +414,9 @@ const QuestionReview = ({ questions }) => {
                     Correct Answer:{" "}
                   </span>
                   <span className="text-green-700">
-                    {question.correctAnswer}
+                    {Array.isArray(question.correctAnswer)
+                      ? question.correctAnswer.join(", ")
+                      : question.correctAnswer || "No correct answer"}
                   </span>
                 </div>
               )}
@@ -406,7 +443,8 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
                 {result.quizName}
               </h2>
               <p className="text-gray-600">
-                Taken on {new Date(result.dateTaken).toLocaleDateString()}
+                Taken on{" "}
+                {new Date(result.dateOfCompletition).toLocaleDateString()}
               </p>
             </div>
             <button
@@ -431,7 +469,7 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
                 {result.percentage}%
               </div>
               <div className="text-sm text-gray-600">
-                {result.pointsEarned}/{result.totalPoints} points
+                {result.points}/{result.numOfQuestions} points
               </div>
             </div>
 
@@ -443,10 +481,10 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
                 </span>
               </div>
               <div className="text-2xl font-bold text-green-600">
-                {result.correctAnswers}
+                {result.points}
               </div>
               <div className="text-sm text-gray-600">
-                out of {result.totalQuestions}
+                out of {result.numOfQuestions}
               </div>
             </div>
 
@@ -456,7 +494,7 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
                 <span className="text-sm font-medium text-gray-700">Time</span>
               </div>
               <div className="text-2xl font-bold text-purple-600">
-                {result.timeSpent}
+                {result.timeDuration}
               </div>
               <div className="text-sm text-gray-600">minutes</div>
             </div>
@@ -469,7 +507,7 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
               <div className="text-lg font-bold text-yellow-600 capitalize">
                 {result.difficulty}
               </div>
-              <div className="text-sm text-gray-600">{result.theme}</div>
+              <div className="text-sm text-gray-600">{result.category}</div>
             </div>
           </div>
 
@@ -477,8 +515,8 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
           {multipleAttempts && <ProgressChart data={previousResults} />}
 
           {/* Question Review (only if questions available) */}
-          {result.questions && result.questions.length > 0 && (
-            <QuestionReview questions={result.questions} />
+          {result.myQuestions && result.myQuestions.length > 0 && (
+            <QuestionReview result={result} />
           )}
 
           {/* Performance Insights */}
@@ -511,8 +549,9 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
                 </h4>
                 <div className="text-sm text-gray-600">
                   Average:{" "}
-                  {Math.round((result.timeSpent / result.totalQuestions) * 10) /
-                    10}{" "}
+                  {Math.round(
+                    (result.timeDuration / result.numOfQuestions) * 10
+                  ) / 10}{" "}
                   min per question
                 </div>
               </div>
@@ -543,13 +582,13 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-white bg-opacity-20 text-white text-xs font-medium rounded-full">
-              {result.theme}
+              {result.category}
             </span>
             <DifficultyBadge difficulty={result.difficulty} />
           </div>
           <div className="text-right text-white">
             <div className="text-sm opacity-90">
-              {new Date(result.dateTaken).toLocaleDateString()}
+              {new Date(result.dateOfCompletition).toLocaleDateString()}
             </div>
           </div>
         </div>
@@ -566,7 +605,7 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
             <div className="text-center">
               <ScoreBadge percentage={result.percentage} />
               <div className="text-xs text-gray-500 mt-1">
-                {result.pointsEarned}/{result.totalPoints} pts
+                {result.points}/{result.numOfQuestions} pts
               </div>
             </div>
           </div>
@@ -586,7 +625,7 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
               <BookOpen className="h-4 w-4" />
             </div>
             <div className="text-sm font-medium text-gray-900">
-              {result.correctAnswers}/{result.totalQuestions}
+              {result.points}/{result.numOfQuestions}
             </div>
             <div className="text-xs text-gray-500">Correct</div>
           </div>
@@ -596,7 +635,7 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
               <Clock className="h-4 w-4" />
             </div>
             <div className="text-sm font-medium text-gray-900">
-              {result.timeSpent}m
+              {result.timeDuration}m
             </div>
             <div className="text-xs text-gray-500">Duration</div>
           </div>
@@ -642,19 +681,69 @@ const QuizResultsPage = () => {
   const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
   const [selectedResult, setSelectedResult] = useState(null);
   const [sortBy, setSortBy] = useState("date"); // date, score, name
+  const [results, setResults] = useState([]);
+  const [allQuizzes, setAllQuizzes] = useState([]);
 
   // Extract unique themes and difficulties
-  const themes = ["all", ...new Set(mockResults.map((result) => result.theme))];
-  const difficulties = ["all", "beginner", "intermediate", "advanced"];
+  const themes = ["all", ...new Set(results.map((result) => result.category))];
+  const difficulties = ["all", "easy", "medium", "hard"];
 
+  const authContext = useContext(AuthContext);
+
+  // Get stats for the summary
+  const percentage = (result, quiz) => {
+    if (!quiz.numOfQuestions) return 0;
+
+    return Math.round((result.points / quiz.numOfQuestions) * 100);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const quizzes = await getAllQuizzesForResults();
+
+        setAllQuizzes(quizzes);
+
+        const results = await getMyResults(authContext.userId);
+
+        setResults(results);
+        console.log("Fetched quizzes:", quizzes);
+      } catch (error) {
+        console.error("Error fetching quizzes:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const mergedResults = useMemo(() => {
+    return results.map((result) => {
+      const quiz = allQuizzes.find((q) => q.id === result.quizId) || {};
+
+      const parentQuiz = allQuizzes.find((q) => q.id === quiz.parentQuiz);
+
+      return {
+        ...result,
+        quizName: quiz.name || "Unknown Quiz",
+        category: quiz.category || "Uncategorized",
+        difficulty: quiz.difficulty || "Unknown",
+        numOfQuestions: quiz.numOfQuestions || 0,
+        myQuestions: quiz.questions,
+        correctQuestions: parentQuiz.questions || [],
+        percentage: percentage(result, quiz),
+        parentQuiz: parentQuiz.id || null,
+      };
+    });
+  }, [results, allQuizzes]);
+  console.log(mergedResults);
   // Filter and sort results
   const filteredResults = useMemo(() => {
-    let filtered = mockResults.filter((result) => {
+    let filtered = mergedResults.filter((result) => {
       const matchesSearch = result.quizName
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesTheme =
-        selectedTheme === "all" || result.theme === selectedTheme;
+        selectedTheme === "all" || result.category === selectedTheme;
       const matchesDifficulty =
         selectedDifficulty === "all" ||
         result.difficulty === selectedDifficulty;
@@ -671,18 +760,23 @@ const QuizResultsPage = () => {
           return a.quizName.localeCompare(b.quizName);
         case "date":
         default:
-          return new Date(b.dateTaken) - new Date(a.dateTaken);
+          return (
+            new Date(b.dateOfCompletition) - new Date(a.dateOfCompletition)
+          );
       }
     });
 
     return filtered;
-  }, [searchTerm, selectedTheme, selectedDifficulty, sortBy]);
-
+  }, [mergedResults, searchTerm, selectedTheme, selectedDifficulty, sortBy]);
+  console.log("Filtered results: ", filteredResults);
   // Get previous results for the same quiz
   const getPreviousResults = (currentResult) => {
-    return mockResults
-      .filter((result) => result.quizId === currentResult.quizId)
-      .sort((a, b) => new Date(a.dateTaken) - new Date(b.dateTaken));
+    return mergedResults
+      .filter((result) => result.parentQuiz === currentResult.parentQuiz)
+      .sort(
+        (a, b) =>
+          new Date(a.dateOfCompletition) - new Date(b.dateOfCompletition)
+      );
   };
 
   const handleViewDetails = (result) => {
@@ -693,18 +787,32 @@ const QuizResultsPage = () => {
     setSelectedResult(null);
   };
 
-  // Get stats for the summary
+  console.log("Results:", results);
   const totalQuizzes = filteredResults.length;
   const averageScore =
     totalQuizzes > 0
       ? Math.round(
-          filteredResults.reduce((sum, result) => sum + result.percentage, 0) /
-            totalQuizzes
+          filteredResults.reduce(
+            (sum, result) =>
+              sum +
+              percentage(
+                result,
+                allQuizzes.find((q) => q.id === result.quizId)
+              ),
+            0
+          ) / totalQuizzes
         )
       : 0;
   const bestScore =
     totalQuizzes > 0
-      ? Math.max(...filteredResults.map((result) => result.percentage))
+      ? Math.max(
+          ...filteredResults.map((result) =>
+            percentage(
+              result,
+              allQuizzes.find((q) => q.id === result.quizId)
+            )
+          )
+        )
       : 0;
 
   return (

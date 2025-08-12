@@ -12,6 +12,7 @@ namespace QuizHubBackend.DTO
     public List<AnswerDTO> Answers { get; set; }
     public string AnswerType { get; set; } // OneCorrect, TrueFalse, etc.
     public int Points { get; set; }
+        public int ParentQuestion { get; set; }
 
         public int? QuizId { get; set; }
     }

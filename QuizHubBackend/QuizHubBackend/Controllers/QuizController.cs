@@ -21,11 +21,18 @@ namespace QuizHubBackend.Controllers
         }
 
 
-        [Authorize]
+        
         [HttpGet("getAllQuizzes")]
         public async Task<IActionResult> GetAllQuizzes()
         {
             List<QuizDTO> quizzes = await _quizService.GetAllQuizzes();
+            return Ok(quizzes);
+        }
+
+        [HttpGet("getAllQuizzesForResults")]
+        public async Task<IActionResult> GetAllQuizzesForResults()
+        {
+            List<QuizDTO> quizzes = await _quizService.GetAllQuizzesForResults();
             return Ok(quizzes);
         }
 
@@ -37,5 +44,18 @@ namespace QuizHubBackend.Controllers
             return Ok(result);
         }
 
+        [HttpPost("doQuiz/{quizId}")]
+        public async Task<IActionResult> DoQuiz(int quizId, [FromBody]QuizCompletitionDTO dto)
+        {
+            string result = await _quizService.DoQuiz(quizId, dto);
+            return Ok(result);
+        }
+
+        [HttpGet("getMyResults/{userId}")]
+        public async Task<IActionResult> GetMyResults(int userId)
+        {
+            List<QuizResultDTO> results = await _quizService.GetMyResults(userId);
+            return Ok(results);
+        }
     }
 }

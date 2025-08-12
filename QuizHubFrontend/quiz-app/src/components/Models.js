@@ -12,13 +12,13 @@ export const AnswerType = {
 };
 export class Answer {
   constructor({
-    //id = 0,
+    id = 0,
     text = "",
     isCorrect = false,
     questionId = 0,
     //question = null,
   } = {}) {
-    //this.id = id;
+    this.id = id;
     this.text = text;
     this.isCorrect = isCorrect;
     this.questionId = questionId;
@@ -27,20 +27,22 @@ export class Answer {
 }
 export class Question {
   constructor({
-    //id = 0,
+    id = 0,
     body = "",
     answers = [],
     answerType = AnswerType.OneCorrect,
     points = 0,
     quizId = 0,
+    parentQuestion = 0,
     //quiz = null,
   } = {}) {
-    //this.id = id;
+    this.id = id;
     this.body = body;
     this.answers = answers; // Array of Answer
     this.answerType = answerType;
     this.points = points;
     this.quizId = quizId;
+    this.parentQuestion = parentQuestion; // ID of the parent question if this is a sub-question
     //this.quiz = quiz;
   }
 }
@@ -54,6 +56,7 @@ export class Quiz {
     difficulty = QuizDifficulty.Easy,
     category = "",
     questions = [],
+    parentQuiz = 0,
   } = {}) {
     this.id = id;
     this.name = name;
@@ -63,6 +66,16 @@ export class Quiz {
     this.difficulty = difficulty;
     this.category = category;
     this.questions = questions; // Array of Question
+    this.parentQuiz = parentQuiz; // ID of the parent quiz if this is a sub-quiz
+  }
+}
+
+export class QuizCompletition {
+  constructor({ userId = 0, quizId = 0, answers = [], timeDuration = 0 } = {}) {
+    this.userId = userId;
+    this.quizId = quizId;
+    this.answers = answers;
+    this.timeDuration = timeDuration;
   }
 }
 

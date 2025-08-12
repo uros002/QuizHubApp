@@ -29,8 +29,8 @@ import {
 } from "./QuizTakingPage";
 import Navbar from "../Navbar";
 import AuthContext from "../../context/AuthContext";
-import { getAllQuizzes } from "../Service";
-import "../Models";
+import { getAllQuizzes, DoQuiz } from "../Service";
+import * as Models from "../Models";
 
 // Header Component
 const QuizHubHeader = ({
@@ -193,7 +193,7 @@ const ThemeBadge = ({ theme }) => {
 
   return (
     <span className="px-3 py-1 bg-white bg-opacity-20 text-white text-xs font-medium rounded-full">
-      {formatTheme(theme)}
+      {theme ? formatTheme(theme) : ""}
     </span>
   );
 };
@@ -238,12 +238,13 @@ const QuizCard = ({ quiz, onStartQuiz, onViewQuiz }) => {
 
   const authContext = useContext(AuthContext);
 
+  console.log("QuizCard - category:", quiz.category);
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-indigo-200 group">
       {/* Quiz Header */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4">
         <div className="flex items-start justify-between mb-2">
-          <ThemeBadge theme={quiz.theme} />
+          <ThemeBadge theme={quiz.category} />
           <DifficultyStars difficulty={quiz.difficulty} />
         </div>
         <h3 className="text-white font-bold text-lg leading-tight group-hover:text-opacity-90 transition-all">
@@ -256,8 +257,8 @@ const QuizCard = ({ quiz, onStartQuiz, onViewQuiz }) => {
         {/* Quiz Stats */}
         <div className="flex items-center justify-between mb-4">
           <QuizStats
-            questions={quiz.NumOfQuestions}
-            timeLimit={quiz.timeLimit}
+            questions={quiz.numOfQuestions}
+            timeLimit={quiz.timeDuration / 60} // Convert seconds to minutes
           />
         </div>
 
@@ -779,7 +780,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                   </label>
                   <input
                     type="text"
-                    value={editingQuiz.theme}
+                    value={editingQuiz.category}
                     onChange={(e) => handleQuizChange("theme", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -791,9 +792,9 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                   </label>
                   <input
                     type="number"
-                    value={editingQuiz.timeLimit}
+                    value={editingQuiz.timeDuration / 60}
                     onChange={(e) =>
-                      handleQuizChange("timeLimit", parseInt(e.target.value))
+                      handleQuizChange("timeDuration", parseInt(e.target.value))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     min="1"
@@ -893,11 +894,11 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                               {index + 1}
                             </span>
                             <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full capitalize">
-                              {question.type === "single"
+                              {question.answerType === "OneCorrect"
                                 ? "Single Choice"
-                                : question.type === "multiple"
+                                : question.answerType === "MultipleChoice"
                                 ? "Multiple Choice"
-                                : question.type === "trueFalse"
+                                : question.answerType === "TrueFalse"
                                 ? "True/False"
                                 : "Fill in the Blank"}
                             </span>
@@ -920,34 +921,40 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
 
                         <div className="mb-3">
                           <p className="text-gray-900 font-medium">
-                            {question.text || "Untitled question"}
+                            {question.body || "Untitled question"}
                           </p>
                         </div>
 
                         {/* Show options for choice questions */}
-                        {(question.type === "single" ||
-                          question.type === "multiple") &&
-                          question.options && (
+                        {(question.answerType === "OneCorrect" ||
+                          question.answerType === "MultipleChoice") &&
+                          question.answers && (
                             <div className="space-y-2">
-                              {question.options.map((option, optIndex) => (
+                              {question.answers.map((option, optIndex) => (
                                 <div
-                                  key={optIndex}
+                                  key={option.id}
                                   className="flex items-center gap-2 text-sm text-gray-600"
                                 >
                                   <div
+                                    // className={`w-4 h-4 rounded ${
+                                    //   (question.answerType === "OneCorrect" &&
+                                    //     question.correctAnswer === optIndex) ||
+                                    //   (question.answerType ===
+                                    //     "MultipleChoice" &&
+                                    //     question.correctAnswers?.includes(
+                                    //       optIndex
+                                    //     ))
+                                    //     ? "bg-green-500"
+                                    //     : "bg-gray-200"
+                                    // }`}
                                     className={`w-4 h-4 rounded ${
-                                      (question.type === "single" &&
-                                        question.correctAnswer === optIndex) ||
-                                      (question.type === "multiple" &&
-                                        question.correctAnswers?.includes(
-                                          optIndex
-                                        ))
+                                      option.isCorrect
                                         ? "bg-green-500"
                                         : "bg-gray-200"
                                     }`}
                                   />
                                   <span>
-                                    {option || `Option ${optIndex + 1}`}
+                                    {option.text || `Option ${optIndex + 1}`}
                                   </span>
                                 </div>
                               ))}
@@ -955,17 +962,18 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                           )}
 
                         {/* Show answer for true/false */}
-                        {question.type === "trueFalse" && (
+                        {question.answerType === "TrueFalse" && (
                           <div className="text-sm text-gray-600">
                             <span>Correct answer: </span>
                             <span className="font-medium text-green-600">
-                              {question.correctAnswer ? "True" : "False"}
+                              {question.answers.find((a) => a.isCorrect)
+                                ?.text || "N/A"}
                             </span>
                           </div>
                         )}
 
                         {/* Show answers for fill in the blank */}
-                        {question.type === "fillBlank" &&
+                        {question.answerType === "FillTheBlank" &&
                           question.correctAnswers && (
                             <div className="text-sm text-gray-600">
                               <span>Correct answers: </span>
@@ -1018,12 +1026,15 @@ const QuizHubMain = ({
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
 
+  const authContext = useContext(AuthContext);
+
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
         const response = await getAllQuizzes();
 
         setAllQuizzes(response);
+        console.log("Fetched quizzes:", response);
       } catch (error) {
         console.error("Error fetching quizzes:", error);
       }
@@ -1315,10 +1326,11 @@ const QuizHubMain = ({
   //   },
   // ];
 
-  const quizzes = allQuizzes || sampleQuizzes;
+  //const quizzes = allQuizzes || sampleQuizzes;
+  const quizzes = allQuizzes;
 
   // Extract unique themes and difficulties from quizzes
-  const themes = ["all", ...new Set(quizzes.map((quiz) => quiz.theme))];
+  const themes = ["all", ...new Set(quizzes.map((quiz) => quiz.category))];
   const difficulties = ["all", "beginner", "intermediate", "advanced"];
 
   // Filter and search logic
@@ -1328,7 +1340,7 @@ const QuizHubMain = ({
         quiz.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         quiz.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesTheme =
-        selectedTheme === "all" || quiz.theme === selectedTheme;
+        selectedTheme === "all" || quiz.category === selectedTheme;
       const matchesDifficulty =
         selectedDifficulty === "all" || quiz.difficulty === selectedDifficulty;
 
@@ -1346,7 +1358,7 @@ const QuizHubMain = ({
   // };
 
   const handleStartQuiz = (quizId) => {
-    const quiz = sampleQuizzes.find((q) => q.id === quizId);
+    const quiz = quizzes.find((q) => q.id === quizId);
     if (quiz) {
       setSelectedQuiz(quiz);
       setCurrentPage("taking");
@@ -1355,7 +1367,7 @@ const QuizHubMain = ({
   };
 
   const handleViewQuiz = (quizId) => {
-    const quiz = sampleQuizzes.find((q) => q.id === quizId);
+    const quiz = quizzes.find((q) => q.id === quizId);
     if (quiz) {
       setSelectedQuiz(quiz);
       setCurrentPage("viewing");
@@ -1367,9 +1379,9 @@ const QuizHubMain = ({
     // Here you would typically save to your backend
     console.log("Saving quiz:", updatedQuiz);
     // For now, just update the sample data
-    const quizIndex = sampleQuizzes.findIndex((q) => q.id === updatedQuiz.id);
+    const quizIndex = quizzes.findIndex((q) => q.id === updatedQuiz.id);
     if (quizIndex !== -1) {
-      sampleQuizzes[quizIndex] = updatedQuiz;
+      quizzes[quizIndex] = updatedQuiz;
     }
     // Go back to main page after saving
     setCurrentPage("main");
@@ -1382,7 +1394,21 @@ const QuizHubMain = ({
     setSelectedDifficulty("all");
   };
 
-  const handleFinishQuiz = (answers) => {
+  const handleFinishQuiz = async (answers, timeLeft) => {
+    const quizCompletition = new Models.QuizCompletition({
+      userId: authContext.userId,
+      quizId: selectedQuiz.id,
+      answers,
+      timeDuration: timeLeft,
+    });
+
+    const response = await DoQuiz(quizCompletition);
+
+    if (response.error) {
+      console.error("Error submitting quiz:", response.error);
+      return;
+    }
+    console.log("Quiz submitted successfully:", response);
     setQuizAnswers(answers);
     setCurrentPage("results");
   };

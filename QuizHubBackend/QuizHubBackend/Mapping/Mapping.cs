@@ -15,7 +15,7 @@ namespace QuizHubBackend.Mapping
             CreateMap<User, UserDTO>().ReverseMap().ForMember(dest => dest.ProfileImage, opt => opt.Ignore());;
             CreateMap<User, LoginDTO>().ReverseMap();
             CreateMap<Quiz, QuizDTO>().ForMember(dest => dest.Difficulty, opt => opt.MapFrom(src => src.Difficulty.ToString()))
-            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            //.ForMember(dest => dest.Category, opt => opt.Ignore())
             .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Questions));
             //CreateMap<QuizDTO, Quiz>()
             //    .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -35,16 +35,24 @@ namespace QuizHubBackend.Mapping
             //CreateMap<QuestionDTO, Question>().ReverseMap();
 
             CreateMap<QuestionDTO, Question>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
     .ForMember(dest => dest.Body, opt => opt.MapFrom(src => src.Body))
     .ForMember(dest => dest.Answers, opt => opt.MapFrom(src => src.Answers))
     .ForMember(dest => dest.AnswerType, opt => opt.MapFrom(src => Enum.Parse<AnswerType>(src.AnswerType)))
     .ForMember(dest => dest.Points, opt => opt.MapFrom(src => src.Points));
 
+            CreateMap<Question, QuestionDTO>()
+    .ForMember(dest => dest.Answers, opt => opt.MapFrom(src => src.Answers))
+    .ForMember(dest => dest.AnswerType, opt => opt.MapFrom(src => src.AnswerType.ToString()));
+
             //CreateMap<Answer, AnswerDTO>().ReverseMap();
 
             CreateMap<AnswerDTO, Answer>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
     .ForMember(dest => dest.Text, opt => opt.MapFrom(src => src.Text))
-    .ForMember(dest => dest.IsCorrect, opt => opt.MapFrom(src => src.IsCorrect));
+    .ForMember(dest => dest.IsCorrect, opt => opt.MapFrom(src => src.IsCorrect)).ReverseMap();
+
+            CreateMap<QuizResult, QuizResultDTO>().ReverseMap();
         }
     }
 }

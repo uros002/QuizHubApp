@@ -14,7 +14,7 @@ namespace QuizHubBackend.DTO
         public string Description { get; set; }
         public string Difficulty { get; set; } // as string: Easy/Medium/Hard
 
-        
+        public int ParentQuiz { get; set; }    
     
          public string Category { get; set; } // e.g., "programming", "history", etc.
 

@@ -9,10 +9,10 @@ namespace QuizHubBackend.DTO
     {
          public int Id { get; set; }
     public int UserId { get; set; }
-    public string QuizName { get; set; }
+   // public string QuizName { get; set; }
     public int QuizId { get; set; }
     public int Points { get; set; }
-    public int RightAnwers { get; set; }
+    //public int RightAnwers { get; set; }
     public int TimeDuration { get; set; }
     public DateTime DateOfCompletition { get; set; }
     //public List<QuizResultAnswerDTO> SelectedAnswers { get; set; }

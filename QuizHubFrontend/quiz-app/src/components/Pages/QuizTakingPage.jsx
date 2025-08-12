@@ -11,6 +11,8 @@ import {
   Home,
 } from "lucide-react";
 
+import { Answer } from "../Models";
+
 // Timer Component
 const Timer = ({ timeLeft, totalTime, onTimeUp }) => {
   const formatTime = (seconds) => {
@@ -87,11 +89,11 @@ const ProgressBar = ({ current, total }) => {
 const SingleChoiceQuestion = ({ question, selectedAnswer, onAnswerChange }) => {
   return (
     <div className="space-y-3">
-      {question.options.map((option, index) => (
+      {question.answers.map((option, index) => (
         <label
-          key={index}
+          key={option.id}
           className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-gray-50 ${
-            selectedAnswer === index
+            selectedAnswer === option.text
               ? "border-blue-500 bg-blue-50"
               : "border-gray-200"
           }`}
@@ -99,23 +101,23 @@ const SingleChoiceQuestion = ({ question, selectedAnswer, onAnswerChange }) => {
           <input
             type="radio"
             name={`question-${question.id}`}
-            value={index}
-            checked={selectedAnswer === index}
-            onChange={() => onAnswerChange(index)}
+            value={option.id}
+            checked={selectedAnswer === option.text}
+            onChange={() => onAnswerChange(option.text)}
             className="sr-only"
           />
           <div
             className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
-              selectedAnswer === index
+              selectedAnswer === option.text
                 ? "border-blue-500 bg-blue-500"
                 : "border-gray-300"
             }`}
           >
-            {selectedAnswer === index && (
+            {selectedAnswer === option.text && (
               <div className="w-2 h-2 rounded-full bg-white" />
             )}
           </div>
-          <span className="text-gray-700">{option}</span>
+          <span className="text-gray-700">{option.text}</span>
         </label>
       ))}
     </div>
@@ -137,27 +139,27 @@ const MultipleChoiceQuestion = ({
 
   return (
     <div className="space-y-3">
-      {question.options.map((option, index) => (
+      {question.answers.map((option) => (
         <label
-          key={index}
+          key={option.id}
           className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-gray-50 ${
-            selectedAnswers.includes(index)
+            selectedAnswers.includes(option.text)
               ? "border-blue-500 bg-blue-50"
               : "border-gray-200"
           }`}
         >
           <input
             type="checkbox"
-            checked={selectedAnswers.includes(index)}
-            onChange={() => handleToggle(index)}
+            checked={selectedAnswers.includes(option.text)}
+            onChange={() => handleToggle(option.text)}
             className="sr-only"
           />
-          {selectedAnswers.includes(index) ? (
+          {selectedAnswers.includes(option.text) ? (
             <CheckSquare className="w-5 h-5 text-blue-500 mr-3" />
           ) : (
             <Square className="w-5 h-5 text-gray-400 mr-3" />
           )}
-          <span className="text-gray-700">{option}</span>
+          <span className="text-gray-700">{option.text}</span>
         </label>
       ))}
     </div>
@@ -239,8 +241,8 @@ const FillBlankQuestion = ({ question, answers, onAnswerChange }) => {
 // Question Component
 const QuestionCard = ({ question, currentAnswer, onAnswerChange }) => {
   const renderQuestionContent = () => {
-    switch (question.type) {
-      case "single":
+    switch (question.answerType) {
+      case "OneCorrect":
         return (
           <SingleChoiceQuestion
             question={question}
@@ -248,7 +250,7 @@ const QuestionCard = ({ question, currentAnswer, onAnswerChange }) => {
             onAnswerChange={onAnswerChange}
           />
         );
-      case "multiple":
+      case "MultipleChoice":
         return (
           <MultipleChoiceQuestion
             question={question}
@@ -256,7 +258,7 @@ const QuestionCard = ({ question, currentAnswer, onAnswerChange }) => {
             onAnswerChange={onAnswerChange}
           />
         );
-      case "trueFalse":
+      case "TrueFalse":
         return (
           <TrueFalseQuestion
             question={question}
@@ -264,7 +266,7 @@ const QuestionCard = ({ question, currentAnswer, onAnswerChange }) => {
             onAnswerChange={onAnswerChange}
           />
         );
-      case "fillBlank":
+      case "FillTheBlank":
         return (
           <FillBlankQuestion
             question={question}
@@ -281,9 +283,9 @@ const QuestionCard = ({ question, currentAnswer, onAnswerChange }) => {
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-gray-900 leading-relaxed">
-          {question.text}
+          {question.body}
         </h2>
-        {question.type === "multiple" && (
+        {question.answerType === "MultipleChoice" && (
           <p className="text-sm text-blue-600 mt-2 flex items-center gap-1">
             <AlertCircle className="w-4 h-4" />
             Select all correct answers
@@ -299,12 +301,13 @@ const QuestionCard = ({ question, currentAnswer, onAnswerChange }) => {
 export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(quiz.timeLimit * 60); // Convert minutes to seconds
+  const [timeLeft, setTimeLeft] = useState(quiz.timeDuration * 60); // Convert minutes to seconds
   const [showConfirmFinish, setShowConfirmFinish] = useState(false);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const totalQuestions = quiz.questions.length;
 
+  //console.log("first question", currentQuestion);
   // Timer countdown
   useEffect(() => {
     const timer = setInterval(() => {
@@ -328,8 +331,35 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   const handleAnswerChange = (answer) => {
     setAnswers((prev) => ({
       ...prev,
-      [currentQuestion.id]: answer,
+      [currentQuestion.id]:
+        answer === true || answer === false ? answer.toString() : answer,
     }));
+  };
+
+  const convertAnswersToListModel = (answers) => {
+    const result = [];
+    console.log("Converting answers to list model:", answers);
+    Object.entries(answers).map(([questionId, text]) => {
+      if (Array.isArray(text)) {
+        text.forEach((singleText) => {
+          result.push(
+            new Answer({
+              text: singleText || "",
+              questionId: parseInt(questionId, 10),
+            })
+          );
+        });
+      } else {
+        result.push(
+          new Answer({
+            text: text || "",
+            questionId: parseInt(questionId, 10),
+          })
+        );
+      }
+    });
+
+    return result;
   };
 
   const handleNext = () => {
@@ -338,14 +368,16 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
     }
   };
 
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1);
-    }
-  };
+  // const handlePrevious = () => {
+  //   if (currentQuestionIndex > 0) {
+  //     setCurrentQuestionIndex((prev) => prev - 1);
+  //   }
+  // };
 
   const handleFinishQuiz = () => {
-    onFinish(answers);
+    const modelAnswers = convertAnswersToListModel(answers);
+    console.log("Submitting answers:", modelAnswers);
+    onFinish(modelAnswers, timeLeft);
   };
 
   const getAnsweredCount = () => {
@@ -372,7 +404,7 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Timer
               timeLeft={timeLeft}
-              totalTime={quiz.timeLimit * 60}
+              totalTime={quiz.timeDuration * 60}
               onTimeUp={handleTimeUp}
             />
             <ProgressBar
@@ -404,14 +436,14 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
 
         {/* Navigation */}
         <div className="flex items-center justify-between mt-8">
-          <button
+          {/* <button
             onClick={handlePrevious}
             disabled={currentQuestionIndex === 0}
             className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
-          </button>
+          </button> */}
 
           <div className="flex gap-3">
             <button
@@ -476,32 +508,69 @@ export const ResultsPage = ({
   const calculateResults = () => {
     let correctAnswers = 0;
     const detailedResults = [];
+    console.log("answersssss:", answers);
 
     quiz.questions.forEach((question) => {
-      const userAnswer = answers[question.id];
+      //const userAnswer = answers[question.id];
+      const userAnswer = answers
+        .filter((a) => a.questionId === question.id)
+        .map((a) => a.text);
       let isCorrect = false;
 
-      switch (question.type) {
-        case "single":
-        case "trueFalse":
-          isCorrect = userAnswer === question.correctAnswer;
+      const correctAnswersForQuestion = question.answers
+        .filter((a) => a.isCorrect)
+        .map((a) => a.text);
+
+      console.log("Correct answers for question:", correctAnswersForQuestion);
+
+      console.log("User answer for question:", userAnswer);
+
+      switch (question.answerType) {
+        case "OneCorrect":
+        case "TrueFalse":
+          // isCorrect = Array.isArray(userAnswer)
+          //   ? userAnswer.every((ans) =>
+          //       correctAnswersForQuestion
+          //         .toLowerCase()
+          //         .includes(ans.toLowerCase())
+          //     )
+          //   : correctAnswersForQuestion.includes(userAnswer);
+
+          isCorrect = Array.isArray(userAnswer)
+            ? userAnswer.every((ans) =>
+                correctAnswersForQuestion.some(
+                  (correctAns) => correctAns.toLowerCase() === ans.toLowerCase()
+                )
+              )
+            : correctAnswersForQuestion.includes(userAnswer);
+
           break;
-        case "multiple":
-          const correctSet = new Set(question.correctAnswers);
-          const userSet = new Set(userAnswer || []);
-          isCorrect =
-            correctSet.size === userSet.size &&
-            [...correctSet].every((x) => userSet.has(x));
+        case "MultipleChoice":
+          if (Array.isArray(userAnswer)) {
+            const correctSet = new Set(correctAnswersForQuestion);
+            const userSet = new Set(userAnswer || []);
+            isCorrect =
+              correctSet.size === userSet.size &&
+              [...correctSet].every((x) => userSet.has(x));
+          } else {
+            isCorrect = false;
+          }
           break;
-        case "fillBlank":
-          const userAnswers = userAnswer || [];
-          isCorrect = question.correctAnswers.every(
-            (correct, index) =>
-              userAnswers[index] &&
-              userAnswers[index].toLowerCase().trim() ===
-                correct.toLowerCase().trim()
-          );
+        case "FillTheBlank":
+          if (Array.isArray(userAnswer)) {
+            isCorrect = correctAnswersForQuestion.every(
+              (correct, index) =>
+                userAnswer[index] &&
+                userAnswer[index].toLowerCase().trim() ===
+                  correct.toLowerCase().trim()
+            );
+          } else {
+            isCorrect = false;
+          }
           break;
+
+        default:
+          isCorrect = false;
       }
 
       if (isCorrect) correctAnswers++;
@@ -510,7 +579,7 @@ export const ResultsPage = ({
         question,
         userAnswer,
         isCorrect,
-        correctAnswer: question.correctAnswer || question.correctAnswers,
+        correctAnswers: correctAnswersForQuestion,
       });
     });
 
@@ -518,6 +587,7 @@ export const ResultsPage = ({
       (correctAnswers / quiz.questions.length) * 100
     );
 
+    console.log("Detailed results:", detailedResults);
     return {
       correct: correctAnswers,
       total: quiz.questions.length,
@@ -541,39 +611,56 @@ export const ResultsPage = ({
   };
 
   const formatUserAnswer = (question, userAnswer) => {
-    if (!userAnswer && userAnswer !== 0 && userAnswer !== false)
+    console.log("User answer:", userAnswer);
+    console.log("question", question);
+    if (
+      userAnswer === undefined ||
+      userAnswer === null ||
+      (Array.isArray(userAnswer) && userAnswer.length === 0) ||
+      userAnswer === ""
+    ) {
       return "No answer";
-
-    switch (question.type) {
-      case "single":
-        return question.options[userAnswer] || "No answer";
-      case "multiple":
-        return userAnswer.length > 0
-          ? userAnswer.map((index) => question.options[index]).join(", ")
-          : "No answer";
-      case "trueFalse":
+    }
+    switch (question.answerType) {
+      case "OneCorrect":
+        return userAnswer || "No answer";
+      case "MultipleChoice":
+        if (Array.isArray(userAnswer) && userAnswer.length > 0) {
+          return userAnswer.join(",");
+        } else {
+          return "No answer";
+        }
+      case "TrueFalse":
+        if (typeof userAnswer === "string") {
+          return userAnswer.toLowerCase() === "true" ? "True" : "False";
+        }
         return userAnswer ? "True" : "False";
-      case "fillBlank":
-        return Array.isArray(userAnswer)
-          ? userAnswer.join(", ") || "No answer"
-          : "No answer";
+      case "FillTheBlank":
+        if (Array.isArray(userAnswer)) {
+          return userAnswer.length > 0 ? userAnswer.join(", ") : "No answer";
+        }
+        return userAnswer || "No answer";
       default:
         return "No answer";
     }
   };
 
   const formatCorrectAnswer = (question) => {
-    switch (question.type) {
-      case "single":
-        return question.options[question.correctAnswer];
-      case "multiple":
-        return question.correctAnswers
-          .map((index) => question.options[index])
-          .join(", ");
-      case "trueFalse":
-        return question.correctAnswer ? "True" : "False";
-      case "fillBlank":
-        return question.correctAnswers.join(", ");
+    const correctAnswers = question.answers
+      .filter((a) => a.isCorrect)
+      .map((a) => a.text);
+
+    switch (question.answerType) {
+      case "OneCorrect":
+        return correctAnswers.length > 0 ? correctAnswers[0] : "No answer";
+      case "MultipleChoice":
+        return correctAnswers.length > 0 ? correctAnswers.join(", ") : "N/A";
+      case "TrueFalse":
+        return correctAnswers.length > 0 ? correctAnswers[0] : "No answer";
+      case "FillTheBlank":
+        return correctAnswers.length > 0
+          ? correctAnswers.join(", ")
+          : "No answer";
       default:
         return "Unknown";
     }
@@ -672,7 +759,7 @@ export const ResultsPage = ({
               >
                 <div className="flex items-start justify-between mb-4">
                   <h4 className="text-lg font-semibold text-gray-900 flex-1">
-                    {index + 1}. {result.question.text}
+                    {index + 1}. {result.question.body}
                   </h4>
                   <div
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -804,7 +891,7 @@ const QuizSystem = () => {
     }
   };
 
-  const handleFinishQuiz = (answers) => {
+  const handleFinishQuiz = (answers, timeLeft) => {
     setQuizAnswers(answers);
     setCurrentPage("results");
   };
@@ -865,7 +952,7 @@ const QuizSystem = () => {
                   <p className="text-gray-600 mb-4">{quiz.description}</p>
                   <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
                     <span>{quiz.questions.length} questions</span>
-                    <span>{quiz.timeLimit} minutes</span>
+                    <span>{quiz.timeDuration} minutes</span>
                     <span className="capitalize">{quiz.difficulty}</span>
                   </div>
                   <button

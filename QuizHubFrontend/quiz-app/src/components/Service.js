@@ -82,3 +82,21 @@ export const getMyResults = async (userId) => {
     throw error;
   }
 };
+
+export const updateQuiz = async (updatedQuiz) => {
+  try {
+    const response = await api.post(`api/quizzes/updateQuiz/`, updatedQuiz, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (response.status === 200) {
+      return response.data; // Assuming the API returns the quiz results
+    }
+  } catch (error) {
+    console.error("Error fetching results:", error);
+    throw error;
+  }
+};

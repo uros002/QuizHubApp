@@ -18,5 +18,7 @@ namespace QuizHubBackend.Interfaces
         Task<String> DoQuiz(int quizId, QuizCompletitionDTO quizCompletitionDTO);
 
         Task<List<QuizResultDTO>> GetMyResults(int userId);
+
+        Task<String> UpdateQuiz(QuizDTO quizDTO);
     }
 }

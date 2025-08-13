@@ -29,7 +29,7 @@ import {
 } from "./QuizTakingPage";
 import Navbar from "../Navbar";
 import AuthContext from "../../context/AuthContext";
-import { getAllQuizzes, DoQuiz } from "../Service";
+import { getAllQuizzes, DoQuiz, updateQuiz } from "../Service";
 import * as Models from "../Models";
 
 // Header Component
@@ -400,18 +400,55 @@ const FilterBar = ({
 
 // Quiz View/Edit Page Component
 const QuizViewPage = ({ quiz, onSave, onBack }) => {
-  const [editingQuiz, setEditingQuiz] = useState({ ...quiz });
-  const [editingQuestions, setEditingQuestions] = useState([...quiz.questions]);
+  const quizWithCorrectAnswers = {
+    ...quiz,
+    questions: quiz.questions.map((question) => {
+      const correctAnswers = (question.answers || [])
+        .filter((a) => a.isCorrect)
+        .map((a) => a.text);
+
+      return {
+        ...question,
+        correctAnswers,
+      };
+    }),
+  };
+
+  console.log("quiz with correct answers", quizWithCorrectAnswers);
+
+  const [editingQuiz, setEditingQuiz] = useState({ ...quizWithCorrectAnswers });
+  const [editingQuestions, setEditingQuestions] = useState([
+    ...quizWithCorrectAnswers.questions,
+  ]);
   const [editingQuestionId, setEditingQuestionId] = useState(null);
   const [newQuestion, setNewQuestion] = useState(null);
   const [isQuizModified, setIsQuizModified] = useState(false);
+
+  // const mergeQestions = quiz.questions.map((question) => {
+  //   const correctAnswers = question.answers
+  //   .filter((a) => a.isCorrect)
+  //   .map((a) => a.text);
+
+  //   return {
+  //     ...question,
+
+  //     correctAnswers: correctAnswers || null,
+  //   };
+  // });
+
+  // const mergeQuiz = {
+  //   ...quiz,
+
+  //   questions: mergeQestions,
+  // };
+
+  // quiz = mergeQuiz;
 
   // Handle quiz basic info changes
   const handleQuizChange = (field, value) => {
     setEditingQuiz((prev) => ({ ...prev, [field]: value }));
     setIsQuizModified(true);
   };
-
   // Handle question changes
   const handleQuestionChange = (questionId, field, value) => {
     setEditingQuestions((prev) =>
@@ -424,14 +461,20 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
   const handleAddQuestion = (type) => {
     const newQuestionTemplate = {
       id: Date.now(),
-      type: type,
-      text: "",
-      options:
-        type === "single" || type === "multiple" ? ["", "", "", ""] : undefined,
+      answerType: type,
+      body: "",
+      answers:
+        type === "OneCorrect" || type === "MultipleChoice"
+          ? ["", "", "", ""]
+          : undefined,
       correctAnswer:
-        type === "single" ? 0 : type === "trueFalse" ? true : undefined,
+        type === "OneCorrect" ? 0 : type === "TrueFalse" ? true : undefined,
       correctAnswers:
-        type === "multiple" ? [] : type === "fillBlank" ? [""] : undefined,
+        type === "MultipleChoice"
+          ? []
+          : type === "FillInBlank"
+          ? [""]
+          : undefined,
     };
     setNewQuestion(newQuestionTemplate);
   };
@@ -470,21 +513,40 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
       setLocalQuestion((prev) => ({ ...prev, [field]: value }));
     };
 
+    // const mergedQuestion = () => {
+    //   const correctAnswers = question.answers
+    //     .filter((a) => a.isCorrect)
+    //     .map((a) => a.text);
+
+    //   return {
+    //     ...question,
+
+    //     correctAnswers: correctAnswers || null,
+    //   };
+    // };
+
+    //setLocalQuestion(mergedQuestion);
+
     const saveQuestion = () => {
       if (isNew) {
         setNewQuestion(localQuestion);
       } else {
-        handleQuestionChange(question.id, "text", localQuestion.text);
-        if (localQuestion.options) {
-          handleQuestionChange(question.id, "options", localQuestion.options);
+        handleQuestionChange(question.id, "body", localQuestion.body);
+        if (localQuestion.answers) {
+          const updatedAnswers = localQuestion.answers.map((answer) => ({
+            ...answer,
+            isCorrect: localQuestion.correctAnswers.includes(answer.text),
+          }));
+
+          handleQuestionChange(question.id, "answers", updatedAnswers);
         }
-        if (localQuestion.correctAnswer !== undefined) {
-          handleQuestionChange(
-            question.id,
-            "correctAnswer",
-            localQuestion.correctAnswer
-          );
-        }
+        // if (localQuestion.correctAnswer !== undefined) {
+        //   handleQuestionChange(
+        //     question.id,
+        //     "correctAnswers",
+        //     localQuestion.correctAnswers
+        //   );
+        // }
         if (localQuestion.correctAnswers !== undefined) {
           handleQuestionChange(
             question.id,
@@ -501,11 +563,11 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full capitalize">
-              {question.type === "single"
+              {question.answerType === "OneCorrect"
                 ? "Single Choice"
-                : question.type === "multiple"
+                : question.answerType === "MultipleChoice"
                 ? "Multiple Choice"
-                : question.type === "trueFalse"
+                : question.answerType === "TrueFalse"
                 ? "True/False"
                 : "Fill in the Blank"}
             </span>
@@ -538,8 +600,8 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
             Question Text
           </label>
           <textarea
-            value={localQuestion.text}
-            onChange={(e) => updateLocalQuestion("text", e.target.value)}
+            value={localQuestion.body}
+            onChange={(e) => updateLocalQuestion("body", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             rows="3"
             placeholder="Enter your question here..."
@@ -547,21 +609,24 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
         </div>
 
         {/* Options for Single/Multiple Choice */}
-        {(question.type === "single" || question.type === "multiple") && (
+        {(question.answerType === "OneCorrect" ||
+          question.answerType === "MultipleChoice") && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Answer Options
             </label>
-            {localQuestion.options.map((option, index) => (
+            {localQuestion.answers.map((option, index) => (
               <div key={index} className="flex items-center gap-3 mb-2">
                 <div className="flex items-center">
-                  {question.type === "single" ? (
+                  {question.answerType === "OneCorrect" ? (
                     <input
                       type="radio"
                       name={`correct-${question.id}`}
-                      checked={localQuestion.correctAnswer === index}
+                      checked={localQuestion.correctAnswers?.includes(
+                        option.text
+                      )}
                       onChange={() =>
-                        updateLocalQuestion("correctAnswer", index)
+                        updateLocalQuestion("correctAnswers", option.text)
                       }
                       className="text-indigo-600 focus:ring-indigo-500"
                     />
@@ -569,7 +634,8 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                     <input
                       type="checkbox"
                       checked={
-                        localQuestion.correctAnswers?.includes(index) || false
+                        localQuestion.correctAnswers?.includes(option.text) ||
+                        false
                       }
                       onChange={(e) => {
                         const currentAnswers =
@@ -577,12 +643,12 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                         if (e.target.checked) {
                           updateLocalQuestion("correctAnswers", [
                             ...currentAnswers,
-                            index,
+                            option.text,
                           ]);
                         } else {
                           updateLocalQuestion(
                             "correctAnswers",
-                            currentAnswers.filter((i) => i !== index)
+                            currentAnswers.filter((i) => i !== option.text)
                           );
                         }
                       }}
@@ -592,11 +658,15 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                 </div>
                 <input
                   type="text"
-                  value={option}
+                  value={option.text}
                   onChange={(e) => {
-                    const newOptions = [...localQuestion.options];
-                    newOptions[index] = e.target.value;
-                    updateLocalQuestion("options", newOptions);
+                    const newAnswers = [...localQuestion.answers];
+                    //newAnswers[index] = e.target.value;
+                    newAnswers[index] = {
+                      ...newAnswers[index],
+                      text: e.target.value,
+                    };
+                    updateLocalQuestion("answers", newAnswers);
                   }}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder={`Option ${index + 1}`}
@@ -607,7 +677,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
         )}
 
         {/* True/False Options */}
-        {question.type === "trueFalse" && (
+        {question.answerType === "TrueFalse" && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Correct Answer
@@ -617,8 +687,8 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                 <input
                   type="radio"
                   name={`trueFalse-${question.id}`}
-                  checked={localQuestion.correctAnswer === true}
-                  onChange={() => updateLocalQuestion("correctAnswer", true)}
+                  checked={localQuestion.correctAnswers?.includes("True")}
+                  onChange={() => updateLocalQuestion("correctAnswers", "True")}
                   className="text-indigo-600 focus:ring-indigo-500 mr-2"
                 />
                 True
@@ -627,8 +697,10 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                 <input
                   type="radio"
                   name={`trueFalse-${question.id}`}
-                  checked={localQuestion.correctAnswer === false}
-                  onChange={() => updateLocalQuestion("correctAnswer", false)}
+                  checked={localQuestion.correctAnswers?.includes("False")}
+                  onChange={() =>
+                    updateLocalQuestion("correctAnswers", "False")
+                  }
                   className="text-indigo-600 focus:ring-indigo-500 mr-2"
                 />
                 False
@@ -638,7 +710,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
         )}
 
         {/* Fill in the Blank */}
-        {question.type === "fillBlank" && (
+        {question.answerType === "FillInBlank" && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Correct Answers (use ___ in question text for blanks)
@@ -826,25 +898,25 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                 </h2>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleAddQuestion("single")}
+                    onClick={() => handleAddQuestion("OneCorrect")}
                     className="px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
                   >
                     + Single Choice
                   </button>
                   <button
-                    onClick={() => handleAddQuestion("multiple")}
+                    onClick={() => handleAddQuestion("MultipleChoice")}
                     className="px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                   >
                     + Multiple Choice
                   </button>
                   <button
-                    onClick={() => handleAddQuestion("trueFalse")}
+                    onClick={() => handleAddQuestion("TrueFalse")}
                     className="px-3 py-2 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
                   >
                     + True/False
                   </button>
                   <button
-                    onClick={() => handleAddQuestion("fillBlank")}
+                    onClick={() => handleAddQuestion("FillInBlank")}
                     className="px-3 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
                   >
                     + Fill Blank
@@ -862,7 +934,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                   <div className="flex gap-2">
                     <button
                       onClick={handleSaveNewQuestion}
-                      disabled={!newQuestion.text.trim()}
+                      disabled={!newQuestion.body.trim()}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
                       Add Question
@@ -938,11 +1010,12 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                                   <div
                                     // className={`w-4 h-4 rounded ${
                                     //   (question.answerType === "OneCorrect" &&
-                                    //     question.correctAnswer === optIndex) ||
+                                    //     question.correctAnswers ===
+                                    //       option.text) ||
                                     //   (question.answerType ===
                                     //     "MultipleChoice" &&
                                     //     question.correctAnswers?.includes(
-                                    //       optIndex
+                                    //       option.text
                                     //     ))
                                     //     ? "bg-green-500"
                                     //     : "bg-gray-200"
@@ -966,6 +1039,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                           <div className="text-sm text-gray-600">
                             <span>Correct answer: </span>
                             <span className="font-medium text-green-600">
+                              {/* {question.correctAnswers} */}
                               {question.answers.find((a) => a.isCorrect)
                                 ?.text || "N/A"}
                             </span>
@@ -1331,7 +1405,7 @@ const QuizHubMain = ({
 
   // Extract unique themes and difficulties from quizzes
   const themes = ["all", ...new Set(quizzes.map((quiz) => quiz.category))];
-  const difficulties = ["all", "beginner", "intermediate", "advanced"];
+  const difficulties = ["all", "easy ", "medium", "hard"];
 
   // Filter and search logic
   const filteredQuizzes = useMemo(() => {
@@ -1375,14 +1449,61 @@ const QuizHubMain = ({
     }
   };
 
-  const handleSaveQuiz = (updatedQuiz) => {
+  const prepareQuizForSave = (quizData) => {
+    const preparedQuestions = quizData.questions.map((q) => {
+      const preparedAnswers = q.answers.map(
+        (a) =>
+          new Models.Answer({
+            id: 0,
+            text: a.text,
+            isCorrect: !!a.isCorrect,
+            questionId: q.id,
+          })
+      );
+
+      return new Models.Question({
+        id: 0,
+        body: q.body,
+        answerType: q.answerType,
+        points: q.points || 0,
+        quizId: quizData.id,
+        parentQuestion: q.parentQuestion || 0,
+        answers: preparedAnswers,
+      });
+    });
+
+    return new Models.Quiz({
+      id: quizData.id,
+      name: quizData.name,
+      numOfQuestions: preparedQuestions.length,
+      timeDuration: quizData.timeDuration || 0,
+      description: quizData.description,
+      difficulty: quizData.difficulty,
+      category: quizData.category,
+      parentQuiz: quizData.parentQuiz || 0,
+      questions: preparedQuestions,
+      versionParentQuiz: quizData.id,
+    });
+  };
+
+  const handleSaveQuiz = async (updatedQuiz) => {
     // Here you would typically save to your backend
-    console.log("Saving quiz:", updatedQuiz);
+
+    updatedQuiz.difficulty =
+      updatedQuiz.difficulty.charAt(0).toUpperCase() +
+      updatedQuiz.difficulty.slice(1).toLowerCase();
+
+    const quizToSave = prepareQuizForSave(updatedQuiz);
+    console.log("Saving quiz:", quizToSave);
+    const response = await updateQuiz(quizToSave);
+
+    console.log(response);
+
     // For now, just update the sample data
-    const quizIndex = quizzes.findIndex((q) => q.id === updatedQuiz.id);
-    if (quizIndex !== -1) {
-      quizzes[quizIndex] = updatedQuiz;
-    }
+    // const quizIndex = quizzes.findIndex((q) => q.id === updatedQuiz.id);
+    // if (quizIndex !== -1) {
+    //   quizzes[quizIndex] = updatedQuiz;
+    // }
     // Go back to main page after saving
     setCurrentPage("main");
     setSelectedQuiz(null);
@@ -1454,7 +1575,11 @@ const QuizHubMain = ({
       return (
         <div>
           <Navbar />
-          <QuizViewPage quiz={selectedQuiz} onBack={handleBackToQuizzes} />
+          <QuizViewPage
+            quiz={selectedQuiz}
+            onBack={handleBackToQuizzes}
+            onSave={handleSaveQuiz}
+          />
         </div>
       );
     default:

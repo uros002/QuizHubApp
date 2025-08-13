@@ -45,14 +45,19 @@ namespace QuizHubBackend.Services
             {
                 foreach (var question in quiz.Questions)
                 {
-                    foreach (var parentQuestion in parentQuiz.Questions)
+                    if (parentQuiz != null)
                     {
-                        if (question.Body.Trim().ToLower().Equals(parentQuestion.Body.Trim().ToLower()))
+
+                        foreach (var parentQuestion in parentQuiz.Questions)
                         {
-                            question.ParentQuestion = parentQuestion.Id;
-                            break;
+                            if (question.Body.Trim().ToLower().Equals(parentQuestion.Body.Trim().ToLower()))
+                            {
+                                question.ParentQuestion = parentQuestion.Id;
+                                break;
+                            }
                         }
                     }
+                   
 
                     question.Quiz = quiz;
 
@@ -75,6 +80,42 @@ namespace QuizHubBackend.Services
             await _appDbContext.SaveChangesAsync();
 
             return "Quiz is created";
+
+        }
+        public async Task<string> UpdateQuiz(QuizDTO quizDTO)
+        {
+            Console.WriteLine(JsonConvert.SerializeObject(quizDTO));
+            Quiz quiz = _mapper.Map<Quiz>(quizDTO);
+
+            Console.WriteLine("Mapped quiz:");
+            Console.WriteLine(JsonConvert.SerializeObject(quiz));
+
+            Quiz versionParentQuiz = await _appDbContext.Quizes.Where(q => q.Id == quiz.VersionParentQuiz).FirstOrDefaultAsync();
+            if(versionParentQuiz == null)
+            {
+                return "Parent quiz for version is not existing!";
+            }
+            var versionOfParent = versionParentQuiz.Version;
+            quiz.Version = versionOfParent + 1;
+
+            if(quiz.Questions != null)
+            {
+                foreach(var question in quiz.Questions)
+                {
+                    question.Quiz = quiz;
+
+                    foreach(var answer in question.Answers)
+                    {
+                        answer.Question = question;
+                    }
+                }
+            }
+
+            _appDbContext.Quizes.Add(quiz);
+
+            await _appDbContext.SaveChangesAsync();
+
+            return "Quiz is updated successfully";
 
         }
 
@@ -204,7 +245,10 @@ namespace QuizHubBackend.Services
             .AsSplitQuery()
         .ToListAsync();
 
-            var quizDtos = _mapper.Map<List<QuizDTO>>(quizzes);
+
+            var latestQuizzes = quizzes.Where(q => !quizzes.Any(other => other.VersionParentQuiz == q.Id)).ToList();
+
+            var quizDtos = _mapper.Map<List<QuizDTO>>(latestQuizzes);
 
             return quizDtos;
         }
@@ -232,5 +276,6 @@ namespace QuizHubBackend.Services
 
             return resultsDTOs;
         }
+
     }
 }

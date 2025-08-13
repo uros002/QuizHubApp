@@ -16,6 +16,7 @@ namespace QuizHubBackend.DTO
 
         public int ParentQuiz { get; set; }    
     
+        public int? VersionParentQuiz { get; set; }
          public string Category { get; set; } // e.g., "programming", "history", etc.
 
         public List<QuestionDTO> Questions { get; set; } // optional: only include when needed

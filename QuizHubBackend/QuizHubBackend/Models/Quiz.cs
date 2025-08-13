@@ -35,6 +35,8 @@ namespace QuizHubBackend.Models
         public string Category { get; set; }
 
         public int? ParentQuiz { get; set; }
+
+        public int? VersionParentQuiz { get; set; }
         
     }
 }

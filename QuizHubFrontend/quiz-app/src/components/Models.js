@@ -57,6 +57,7 @@ export class Quiz {
     category = "",
     questions = [],
     parentQuiz = 0,
+    versionParentQuiz = 0,
   } = {}) {
     this.id = id;
     this.name = name;
@@ -67,6 +68,7 @@ export class Quiz {
     this.category = category;
     this.questions = questions; // Array of Question
     this.parentQuiz = parentQuiz; // ID of the parent quiz if this is a sub-quiz
+    this.versionParentQuiz = versionParentQuiz;
   }
 }
 

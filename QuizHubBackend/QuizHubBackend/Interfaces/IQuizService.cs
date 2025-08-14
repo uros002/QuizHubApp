@@ -20,5 +20,7 @@ namespace QuizHubBackend.Interfaces
         Task<List<QuizResultDTO>> GetMyResults(int userId);
 
         Task<String> UpdateQuiz(QuizDTO quizDTO);
+
+        Task<String> DeleteQuiz(int quizId);
     }
 }

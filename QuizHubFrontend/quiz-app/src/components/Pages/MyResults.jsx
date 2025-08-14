@@ -635,7 +635,7 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
               <Clock className="h-4 w-4" />
             </div>
             <div className="text-sm font-medium text-gray-900">
-              {result.timeDuration}m
+              {Math.round(result.timeDuration / 60)}m
             </div>
             <div className="text-xs text-gray-500">Duration</div>
           </div>
@@ -708,6 +708,7 @@ const QuizResultsPage = () => {
 
         setResults(results);
         console.log("Fetched quizzes:", quizzes);
+        console.log("Fetched results:", results);
       } catch (error) {
         console.error("Error fetching quizzes:", error);
       }
@@ -720,7 +721,11 @@ const QuizResultsPage = () => {
     return results.map((result) => {
       const quiz = allQuizzes.find((q) => q.id === result.quizId) || {};
 
+      console.log("FOUND QUIZ: ", quiz);
+
       const parentQuiz = allQuizzes.find((q) => q.id === quiz.parentQuiz);
+
+      console.log("Parent quiz: ", parentQuiz);
 
       return {
         ...result,

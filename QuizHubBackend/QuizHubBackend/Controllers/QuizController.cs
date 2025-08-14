@@ -64,5 +64,12 @@ namespace QuizHubBackend.Controllers
             string result = await _quizService.UpdateQuiz(quizDTO);
             return Ok(result);
         }
+
+        [HttpPut("deleteQuiz/{quizId}")]
+        public async Task<IActionResult> DeleteQuiz(int quizId)
+        {
+            string result = await _quizService.DeleteQuiz(quizId);
+            return Ok(result);
+        }
     }
 }

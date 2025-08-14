@@ -29,7 +29,7 @@ import {
 } from "./QuizTakingPage";
 import Navbar from "../Navbar";
 import AuthContext from "../../context/AuthContext";
-import { getAllQuizzes, DoQuiz, updateQuiz } from "../Service";
+import { getAllQuizzes, DoQuiz, updateQuiz, deleteQuiz } from "../Service";
 import * as Models from "../Models";
 
 // Header Component
@@ -125,7 +125,7 @@ const DropdownFilter = ({
 
 // Difficulty Stars Component
 const DifficultyStars = ({ difficulty }) => {
-  const starCount = difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
+  const starCount = difficulty === "Easy" ? 1 : difficulty === "Medium" ? 2 : 3;
 
   return (
     <div className="flex gap-1">
@@ -227,7 +227,7 @@ const ViewQuizButton = ({ onView, disabled = false }) => {
 };
 
 // Quiz Card Component
-const QuizCard = ({ quiz, onStartQuiz, onViewQuiz }) => {
+const QuizCard = ({ quiz, onStartQuiz, onViewQuiz, onDelete }) => {
   const handleStart = () => {
     onStartQuiz(quiz.id);
   };
@@ -242,10 +242,20 @@ const QuizCard = ({ quiz, onStartQuiz, onViewQuiz }) => {
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-indigo-200 group">
       {/* Quiz Header */}
+
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4">
         <div className="flex items-start justify-between mb-2">
           <ThemeBadge theme={quiz.category} />
           <DifficultyStars difficulty={quiz.difficulty} />
+          {authContext.userType === "Admin" && (
+            <button
+              onClick={() => onDelete(quiz.id)}
+              className="  hover:text-red-700  rounded-full p-2 shadow-md hover:shadow-lg transition"
+              title="Delete quiz"
+            >
+              <Trash2 size={20} color="#ffffff" strokeWidth={1.5} />
+            </button>
+          )}
         </div>
         <h3 className="text-white font-bold text-lg leading-tight group-hover:text-opacity-90 transition-all">
           {quiz.name}
@@ -329,7 +339,7 @@ const EmptyState = ({ onClearFilters, searchTerm, hasFilters }) => {
 };
 
 // Quiz Grid Component
-const QuizGrid = ({ quizzes, onStartQuiz, onViewQuiz }) => {
+const QuizGrid = ({ quizzes, onStartQuiz, onViewQuiz, onDelete }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {quizzes.map((quiz) => (
@@ -338,6 +348,7 @@ const QuizGrid = ({ quizzes, onStartQuiz, onViewQuiz }) => {
           quiz={quiz}
           onStartQuiz={onStartQuiz}
           onViewQuiz={onViewQuiz}
+          onDelete={onDelete}
         />
       ))}
     </div>
@@ -424,6 +435,10 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
   const [newQuestion, setNewQuestion] = useState(null);
   const [isQuizModified, setIsQuizModified] = useState(false);
 
+  useEffect(() => {
+    console.log("editing questions", editingQuestions);
+  }, [editingQuestions]);
+
   // const mergeQestions = quiz.questions.map((question) => {
   //   const correctAnswers = question.answers
   //   .filter((a) => a.isCorrect)
@@ -457,23 +472,33 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
     setIsQuizModified(true);
   };
 
+  const generateUniqueId = (existingQuestions) => {
+    let id;
+    do {
+      id = Math.floor(Math.random() * 10000); // Random int between 0 and 999999
+    } while (existingQuestions.some((q) => q.id === id));
+    return id;
+  };
+
   // Add new question
   const handleAddQuestion = (type) => {
     const newQuestionTemplate = {
-      id: Date.now(),
+      id: generateUniqueId(editingQuestions),
       answerType: type,
       body: "",
       answers:
         type === "OneCorrect" || type === "MultipleChoice"
           ? ["", "", "", ""]
           : undefined,
-      correctAnswer:
-        type === "OneCorrect" ? 0 : type === "TrueFalse" ? true : undefined,
+      // correctAnswer:
+      //   type === "OneCorrect" ? 0 : type === "TrueFalse" ? true : undefined,
       correctAnswers:
         type === "MultipleChoice"
           ? []
           : type === "FillInBlank"
           ? [""]
+          : type === "TrueFalse"
+          ? true
           : undefined,
     };
     setNewQuestion(newQuestionTemplate);
@@ -481,8 +506,9 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
 
   // Save new question
   const handleSaveNewQuestion = () => {
-    if (newQuestion.text.trim()) {
+    if (newQuestion.body.trim()) {
       setEditingQuestions((prev) => [...prev, newQuestion]);
+      console.log("editing questions ", editingQuestions);
       setNewQuestion(null);
       setIsQuizModified(true);
     }
@@ -529,6 +555,18 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
 
     const saveQuestion = () => {
       if (isNew) {
+        console.log("!!!!NEW QUESTION!!!! -----> ", localQuestion);
+
+        if (!localQuestion.correctAnswers) {
+          return;
+        }
+
+        if (localQuestion.answers) {
+          localQuestion.answers = localQuestion.answers.map((answer) => ({
+            ...answer,
+            isCorrect: localQuestion.correctAnswers.includes(answer.text),
+          }));
+        }
         setNewQuestion(localQuestion);
       } else {
         handleQuestionChange(question.id, "body", localQuestion.body);
@@ -840,9 +878,9 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
                   </select>
                 </div>
 
@@ -866,7 +904,10 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
                     type="number"
                     value={editingQuiz.timeDuration / 60}
                     onChange={(e) =>
-                      handleQuizChange("timeDuration", parseInt(e.target.value))
+                      handleQuizChange(
+                        "timeDuration",
+                        parseInt(e.target.value) * 60
+                      )
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     min="1"
@@ -1099,6 +1140,7 @@ const QuizHubMain = ({
   const [currentPage, setCurrentPage] = useState(path || "main"); // main, taking, results
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
   const authContext = useContext(AuthContext);
 
@@ -1115,7 +1157,7 @@ const QuizHubMain = ({
     };
 
     fetchQuizzes();
-  }, []);
+  }, [currentPage, refreshFlag]);
 
   // Default sample data if no quizzes are provided
   // const sampleQuizzes = [
@@ -1405,7 +1447,7 @@ const QuizHubMain = ({
 
   // Extract unique themes and difficulties from quizzes
   const themes = ["all", ...new Set(quizzes.map((quiz) => quiz.category))];
-  const difficulties = ["all", "easy ", "medium", "hard"];
+  const difficulties = ["all", "Easy ", "Medium", "Hard"];
 
   // Filter and search logic
   const filteredQuizzes = useMemo(() => {
@@ -1509,6 +1551,19 @@ const QuizHubMain = ({
     setSelectedQuiz(null);
   };
 
+  const handleDelete = async (quizId) => {
+    try {
+      const resposne = await deleteQuiz(quizId);
+
+      console.log(resposne);
+
+      setRefreshFlag((prev) => !prev);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedTheme("all");
@@ -1516,11 +1571,12 @@ const QuizHubMain = ({
   };
 
   const handleFinishQuiz = async (answers, timeLeft) => {
+    console.log("TIME LEFT: ", timeLeft);
     const quizCompletition = new Models.QuizCompletition({
       userId: authContext.userId,
       quizId: selectedQuiz.id,
       answers,
-      timeDuration: timeLeft,
+      timeLeft: timeLeft,
     });
 
     const response = await DoQuiz(quizCompletition);
@@ -1621,6 +1677,7 @@ const QuizHubMain = ({
                 onStartQuiz={handleStartQuiz}
                 onViewQuiz={handleViewQuiz}
                 onSaveQuiz={handleSaveQuiz}
+                onDelete={handleDelete}
               />
             ) : (
               <EmptyState

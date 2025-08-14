@@ -100,3 +100,21 @@ export const updateQuiz = async (updatedQuiz) => {
     throw error;
   }
 };
+
+export const deleteQuiz = async (quizId) => {
+  try {
+    const response = await api.put(`api/quizzes/deleteQuiz/${quizId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (response.status === 200) {
+      return response.data; // Assuming the API returns the quiz results
+    }
+  } catch (error) {
+    console.error("Error while deleting quiz!");
+    throw error;
+  }
+};

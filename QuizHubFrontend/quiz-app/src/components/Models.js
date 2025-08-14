@@ -73,11 +73,11 @@ export class Quiz {
 }
 
 export class QuizCompletition {
-  constructor({ userId = 0, quizId = 0, answers = [], timeDuration = 0 } = {}) {
+  constructor({ userId = 0, quizId = 0, answers = [], timeLeft = 0 } = {}) {
     this.userId = userId;
     this.quizId = quizId;
     this.answers = answers;
-    this.timeDuration = timeDuration;
+    this.timeLeft = timeLeft;
   }
 }
 

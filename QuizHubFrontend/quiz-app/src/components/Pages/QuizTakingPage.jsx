@@ -168,13 +168,14 @@ const MultipleChoiceQuestion = ({
 
 // True/False Question Component
 const TrueFalseQuestion = ({ question, selectedAnswer, onAnswerChange }) => {
+  //console.log("SELECTED ANSWER: ", selectedAnswer);
   return (
     <div className="space-y-3">
       {[true, false].map((value) => (
         <label
-          key={value}
+          key={value.toString()}
           className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-gray-50 ${
-            selectedAnswer === value
+            selectedAnswer === value.toString()
               ? "border-blue-500 bg-blue-50"
               : "border-gray-200"
           }`}
@@ -182,19 +183,19 @@ const TrueFalseQuestion = ({ question, selectedAnswer, onAnswerChange }) => {
           <input
             type="radio"
             name={`question-${question.id}`}
-            value={value}
-            checked={selectedAnswer === value}
+            value={value.toString()}
+            checked={selectedAnswer === value.toString()}
             onChange={() => onAnswerChange(value)}
             className="sr-only"
           />
           <div
             className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
-              selectedAnswer === value
+              selectedAnswer === value.toString()
                 ? "border-blue-500 bg-blue-500"
                 : "border-gray-300"
             }`}
           >
-            {selectedAnswer === value && (
+            {selectedAnswer === value.toString() && (
               <div className="w-2 h-2 rounded-full bg-white" />
             )}
           </div>
@@ -301,7 +302,7 @@ const QuestionCard = ({ question, currentAnswer, onAnswerChange }) => {
 export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(quiz.timeDuration * 60); // Convert minutes to seconds
+  const [timeLeft, setTimeLeft] = useState(quiz.timeDuration);
   const [showConfirmFinish, setShowConfirmFinish] = useState(false);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
@@ -325,10 +326,11 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   }, []);
 
   const handleTimeUp = useCallback(() => {
-    onFinish(answers);
+    onFinish(answers, timeLeft);
   }, [answers, onFinish]);
 
   const handleAnswerChange = (answer) => {
+    console.log("ANSWER: ", answer);
     setAnswers((prev) => ({
       ...prev,
       [currentQuestion.id]:
@@ -377,6 +379,7 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   const handleFinishQuiz = () => {
     const modelAnswers = convertAnswersToListModel(answers);
     console.log("Submitting answers:", modelAnswers);
+    console.log("time left:", timeLeft);
     onFinish(modelAnswers, timeLeft);
   };
 
@@ -404,7 +407,7 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Timer
               timeLeft={timeLeft}
-              totalTime={quiz.timeDuration * 60}
+              totalTime={quiz.timeDuration}
               onTimeUp={handleTimeUp}
             />
             <ProgressBar

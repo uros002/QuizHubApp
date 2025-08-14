@@ -136,26 +136,20 @@ namespace QuizHubBackend.Services
 
             var score = CalculateScore(quizCompletitionDTO.Answers, quiz);
 
-            var quizResult = new QuizResult
-            {
-                UserId = quizCompletitionDTO.UserId,
-                QuizId = quizCompletitionDTO.QuizId,
-                Points = score.Points,
-                TimeDuration = quizCompletitionDTO.TimeLeft,
-                DateOfCompletition = DateTime.UtcNow
-
-            };
+            var timeDurationDoingQuiz = quiz.TimeDuration - quizCompletitionDTO.TimeLeft;
+          
 
             var newQuiz = new Quiz {
                 Name = quiz.Name,
                 NumOfQuestions = quiz.NumOfQuestions,
-                TimeDuration = quiz.TimeDuration,
+                TimeDuration = timeDurationDoingQuiz,
                 Description = quiz.Description,
                 Difficulty = quiz.Difficulty,
                 Category = quiz.Category,
                 Version = quiz.Version,
                 IsDeleted = false,
                 UserId = quizCompletitionDTO.UserId,
+                ParentQuiz = quizCompletitionDTO.QuizId,
                 Questions = new List<Question>()
             };
             foreach (var question in quiz.Questions)
@@ -194,6 +188,18 @@ namespace QuizHubBackend.Services
            
 
             _appDbContext.Quizes.Add(newQuiz);
+            await _appDbContext.SaveChangesAsync();
+
+
+            var quizResult = new QuizResult
+            {
+                UserId = quizCompletitionDTO.UserId,
+                QuizId = newQuiz.Id,
+                Points = score.Points,
+                TimeDuration = timeDurationDoingQuiz,
+                DateOfCompletition = DateTime.UtcNow
+
+            };
             _appDbContext.QuizResults.Add(quizResult);
 
             await _appDbContext.SaveChangesAsync();
@@ -277,5 +283,18 @@ namespace QuizHubBackend.Services
             return resultsDTOs;
         }
 
+        public async Task<string> DeleteQuiz(int quizId)
+        {
+            Quiz quiz = await _appDbContext.Quizes.Where(q => q.Id == quizId).FirstOrDefaultAsync();
+
+            
+
+            quiz.IsDeleted = true;
+
+            await _appDbContext.SaveChangesAsync();
+
+            return "Quiz is deleted!";
+
+        }
     }
 }

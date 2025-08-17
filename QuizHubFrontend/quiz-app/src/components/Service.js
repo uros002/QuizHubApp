@@ -83,6 +83,42 @@ export const getMyResults = async (userId) => {
   }
 };
 
+export const getAllResults = async () => {
+  try {
+    const response = await api.get(`api/quizzes/getAllResults/`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (response.status === 200) {
+      return response.data; // Assuming the API returns the quiz results
+    }
+  } catch (error) {
+    console.error("Error fetching results:", error);
+    throw error;
+  }
+};
+
+export const getAllUsers = async () => {
+  try {
+    const response = await api.get(`api/users/getAllUsers/`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (response.status === 200) {
+      return response.data; // Assuming the API returns the quiz results
+    }
+  } catch (error) {
+    console.error("Error fetching results:", error);
+    throw error;
+  }
+};
+
 export const updateQuiz = async (updatedQuiz) => {
   try {
     const response = await api.post(`api/quizzes/updateQuiz/`, updatedQuiz, {

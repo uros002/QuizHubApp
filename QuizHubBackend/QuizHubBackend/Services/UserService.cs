@@ -30,6 +30,13 @@ namespace QuizHubBackend.Services
             _secretKey = config.GetSection("SecretKey");
         }
 
+        public async Task<List<UserDTO>> GetAllUsers()
+        {
+            var users = await _appDbContext.Users.ToListAsync();
+            List<UserDTO> userDtos = _mapper.Map<List<UserDTO>>(users);
+            return userDtos;
+        }
+
         public async Task<string> Login(LoginDTO dto)
         {
             User user = await _appDbContext.Users.FirstOrDefaultAsync(x => x.Username == dto.Username);
@@ -72,7 +79,7 @@ namespace QuizHubBackend.Services
 
         }
 
-        public async Task<string> Register(UserDTO dto)
+        public async Task<string> Register(RegisterDTO dto)
         {
             if (await _appDbContext.Users.FirstOrDefaultAsync(x => x.Username == dto.Username) != null)
             {
@@ -116,5 +123,7 @@ namespace QuizHubBackend.Services
 
 
         }
+
+
     }
 }

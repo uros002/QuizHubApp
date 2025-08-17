@@ -513,6 +513,8 @@ export const ResultsPage = ({
     const detailedResults = [];
     console.log("answersssss:", answers);
 
+    let wonPoints = 0;
+
     quiz.questions.forEach((question) => {
       //const userAnswer = answers[question.id];
       const userAnswer = answers
@@ -576,8 +578,10 @@ export const ResultsPage = ({
           isCorrect = false;
       }
 
-      if (isCorrect) correctAnswers++;
-
+      if (isCorrect) {
+        correctAnswers++;
+        wonPoints = wonPoints + question.points;
+      }
       detailedResults.push({
         question,
         userAnswer,
@@ -586,9 +590,7 @@ export const ResultsPage = ({
       });
     });
 
-    const percentage = Math.round(
-      (correctAnswers / quiz.questions.length) * 100
-    );
+    const percentage = Math.round((correctAnswers / quiz.quizPoints) * 100);
 
     console.log("Detailed results:", detailedResults);
     return {

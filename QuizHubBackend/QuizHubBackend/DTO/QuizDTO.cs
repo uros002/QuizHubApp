@@ -20,6 +20,8 @@ namespace QuizHubBackend.DTO
          public string Category { get; set; } // e.g., "programming", "history", etc.
 
         public List<QuestionDTO> Questions { get; set; } // optional: only include when needed
+
+        public int QuizPoints { get; set; }
 }
 
 }

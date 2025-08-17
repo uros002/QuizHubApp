@@ -10,6 +10,8 @@ namespace QuizHubBackend.Interfaces
     {
         Task<string> Login(LoginDTO dto);
 
-        Task<string> Register(UserDTO dto);
+        Task<string> Register(RegisterDTO dto);
+
+        Task<List<UserDTO>> GetAllUsers();
     }
 }

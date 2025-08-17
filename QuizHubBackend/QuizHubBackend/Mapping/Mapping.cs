@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using QuizHubBackend.DTO;
 using QuizHubBackend.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,8 +14,15 @@ namespace QuizHubBackend.Mapping
     {
        public Mapping()
         {
-            CreateMap<User, UserDTO>().ReverseMap().ForMember(dest => dest.ProfileImage, opt => opt.Ignore());;
-            CreateMap<User, LoginDTO>().ReverseMap();
+            CreateMap<User, UserDTO>()
+     .ForMember(dest => dest.ProfileImage,
+                opt => opt.MapFrom(src => src.ProfileImage != null
+                    ? Convert.ToBase64String(src.ProfileImage)
+                    : null));
+            CreateMap<User, RegisterDTO>().ForMember(dest => dest.ProfileImage, opt => opt.Ignore());
+            CreateMap<RegisterDTO, User>().ForMember(dest => dest.ProfileImage, opt => opt.MapFrom(src => ConvertIFormFileToByteArray(src.ProfileImage)));
+        
+        CreateMap<User, LoginDTO>().ReverseMap();
             CreateMap<Quiz, QuizDTO>().ForMember(dest => dest.Difficulty, opt => opt.MapFrom(src => src.Difficulty.ToString()))
             //.ForMember(dest => dest.Category, opt => opt.Ignore())
             .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Questions));
@@ -30,7 +39,9 @@ namespace QuizHubBackend.Mapping
     .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
     .ForMember(dest => dest.Difficulty, opt => opt.MapFrom(src => Enum.Parse<QuizDifficulty>(src.Difficulty)))
     .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category))
-    .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Questions));
+    .ForMember(dest => dest.Questions, opt => opt.MapFrom(src => src.Questions))
+    .ForMember(dest => dest.QuizPoints, opt => opt.MapFrom(src => src.QuizPoints));
+            
            
             //CreateMap<QuestionDTO, Question>().ReverseMap();
 
@@ -53,6 +64,17 @@ namespace QuizHubBackend.Mapping
     .ForMember(dest => dest.IsCorrect, opt => opt.MapFrom(src => src.IsCorrect)).ReverseMap();
 
             CreateMap<QuizResult, QuizResultDTO>().ReverseMap();
+        }
+
+        private byte[] ConvertIFormFileToByteArray(IFormFile file)
+        {
+            if (file == null) return null;
+
+            using (var ms = new MemoryStream())
+            {
+                file.CopyTo(ms);
+                return ms.ToArray();
+            }
         }
     }
 }

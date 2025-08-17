@@ -40,10 +40,17 @@ namespace QuizHubBackend.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] UserDTO dto)
+        public async Task<IActionResult> Register([FromForm] RegisterDTO dto)
         {
             var token = await _userService.Register(dto);
             return Ok(token);
+        }
+
+        [HttpGet("getAllUsers")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var result = await _userService.GetAllUsers();
+            return Ok(result);
         }
 
     }

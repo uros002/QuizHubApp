@@ -25,5 +25,7 @@ namespace QuizHubBackend.Models
 
         public DateTime DateOfCompletition { get; set; }
 
+        public bool IsDeleted { get; set; }
+
     }
 }

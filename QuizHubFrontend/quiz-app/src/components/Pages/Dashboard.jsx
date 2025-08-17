@@ -114,7 +114,8 @@ const DropdownFilter = ({
               onClick={() => onChange(option)}
               className="block w-full text-left px-4 py-2 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
             >
-              {formatOption(option)}
+              {/* {formatOption(option)} */}
+              {option}
             </button>
           ))}
         </div>
@@ -570,6 +571,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
         setNewQuestion(localQuestion);
       } else {
         handleQuestionChange(question.id, "body", localQuestion.body);
+        handleQuestionChange(question.id, "points", localQuestion.points);
         if (localQuestion.answers) {
           const updatedAnswers = localQuestion.answers.map((answer) => ({
             ...answer,
@@ -643,6 +645,23 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             rows="3"
             placeholder="Enter your question here..."
+          />
+        </div>
+
+        {/* Points */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Points
+          </label>
+          <input
+            type="number"
+            value={localQuestion.points || 1}
+            onChange={(e) =>
+              updateLocalQuestion("points", parseInt(e.target.value) || 1)
+            }
+            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            min="1"
+            max="10"
           />
         </div>
 

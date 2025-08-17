@@ -31,7 +31,11 @@ import {
 
 import Navbar from "../Navbar";
 import * as Model from "../Models";
-import { getMyResults, getAllQuizzesForResults } from "../Service";
+import {
+  getAllResults,
+  getAllQuizzesForResults,
+  getAllUsers,
+} from "../Service";
 import AuthContext from "../../context/AuthContext";
 
 // // Mock data for quiz results
@@ -338,7 +342,6 @@ const ProgressChart = ({ data }) => {
 
 // Question Review Component
 const QuestionReview = ({ result }) => {
-  console.log("RESULT TO SEE: ", result);
   const mergedQuestions = result.correctQuestions.map((q, index) => {
     const userAnswers =
       result.myQuestions
@@ -441,22 +444,49 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
       .padStart(2, "0")}`;
   };
 
-  console.log("SELECTED RESULT: ", result);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {result.quizName}
-              </h2>
-              <p className="text-gray-600">
-                Taken on{" "}
-                {new Date(result.dateOfCompletition).toLocaleDateString()}
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                {/* Profile Picture */}
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                  {result.profilePicture ? (
+                    <img
+                      src={`data:image/png;base64,${result.profilePicture}`}
+                      alt={result.username}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-600">
+                    {result.username}
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {result.quizName}
+                  </h2>
+                  <p className="text-gray-600">
+                    Taken on{" "}
+                    {new Date(result.dateOfCompletition).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
             </div>
             <button
               onClick={onClose}
@@ -563,7 +593,7 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
                   {Math.round(
                     (result.timeDuration / result.numOfQuestions) * 10
                   ) / 10}{" "}
-                  min per question
+                  seconds per question
                 </div>
               </div>
             </div>
@@ -603,7 +633,39 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
             </div>
           </div>
         </div>
-        <h3 className="text-white font-bold text-lg leading-tight">
+
+        {/* User Profile Section */}
+        <div className="flex items-center justify-center mb-3">
+          <div className="flex items-center gap-3 bg-white bg-opacity-10 rounded-full px-4 py-2">
+            {/* Profile Picture */}
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-white bg-opacity-20 flex items-center justify-center">
+              {result.profilePicture ? (
+                <img
+                  src={`data:image/png;base64,${result.profilePicture}`}
+                  alt={result.username}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <svg
+                  className="w-5 h-5 text-white opacity-80"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </div>
+            <span className="text-white text-sm font-medium opacity-90">
+              {result.username}
+            </span>
+          </div>
+        </div>
+
+        <h3 className="text-white font-bold text-lg leading-tight text-center">
           {result.quizName}
         </h3>
       </div>
@@ -684,7 +746,7 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
 };
 
 // Main Results Page Component
-const QuizResultsPage = () => {
+const QuizzesResultsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
@@ -694,6 +756,7 @@ const QuizResultsPage = () => {
   const [sortBy, setSortBy] = useState("date"); // date, score, name
   const [results, setResults] = useState([]);
   const [allQuizzes, setAllQuizzes] = useState([]);
+  const [users, setUsers] = useState([]);
 
   // Extract unique themes and difficulties
   const themes = ["all", ...new Set(results.map((result) => result.category))];
@@ -715,11 +778,19 @@ const QuizResultsPage = () => {
 
         setAllQuizzes(quizzes);
 
-        const results = await getMyResults(authContext.userId);
+        const results = await getAllResults();
 
         setResults(results);
+
+        const allUsers = await getAllUsers();
+        setUsers(allUsers);
+
         console.log("Fetched quizzes:", quizzes);
         console.log("Fetched results:", results);
+        console.log("Fetched users: ", allUsers);
+        console.log(
+          "-----------------------------------------------------------------------------"
+        );
       } catch (error) {
         console.error("Error fetching quizzes:", error);
       }
@@ -732,14 +803,20 @@ const QuizResultsPage = () => {
     return results.map((result) => {
       const quiz = allQuizzes.find((q) => q.id === result.quizId) || {};
 
-      console.log("FOUND QUIZ points: ", quiz.quizPoints);
+      //console.log("FOUND QUIZ: ", quiz);
 
       const parentQuiz = allQuizzes.find((q) => q.id === quiz.parentQuiz);
 
-      console.log("Parent quiz: ", parentQuiz);
+      //console.log("Parent quiz: ", parentQuiz);
+
+      const user = users.find((u) => parseInt(u.id) === result.userId);
+
+      console.log("USER: ", user);
 
       return {
         ...result,
+        username: user ? user.username : "Unknown",
+        profilePicture: user ? user.profileImage : null,
         quizName: quiz.name || "Unknown Quiz",
         category: quiz.category || "Uncategorized",
         difficulty: quiz.difficulty || "Unknown",
@@ -797,7 +874,6 @@ const QuizResultsPage = () => {
 
   const handleViewDetails = (result) => {
     setSelectedResult(result);
-    console.log("SELECTED RESULT: ", result);
   };
 
   const handleCloseDetails = () => {
@@ -841,56 +917,8 @@ const QuizResultsPage = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              My Quiz <span className="text-indigo-600">Results</span>
+              Quiz <span className="text-indigo-600">Results</span>
             </h1>
-            <p className="text-gray-600 text-lg">
-              Track your progress and review your quiz performance
-            </p>
-          </div>
-
-          {/* Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <BookOpen className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {totalQuizzes}
-                  </div>
-                  <div className="text-sm text-gray-600">Quizzes Taken</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <Trophy className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {averageScore}%
-                  </div>
-                  <div className="text-sm text-gray-600">Average Score</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Star className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {bestScore}%
-                  </div>
-                  <div className="text-sm text-gray-600">Best Score</div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Filters */}
@@ -944,4 +972,4 @@ const QuizResultsPage = () => {
   );
 };
 
-export default QuizResultsPage;
+export default QuizzesResultsPage;

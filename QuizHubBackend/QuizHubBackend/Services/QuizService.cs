@@ -57,7 +57,8 @@ namespace QuizHubBackend.Services
                             }
                         }
                     }
-                   
+
+                    quiz.QuizPoints += question.Points;
 
                     question.Quiz = quiz;
 
@@ -97,12 +98,14 @@ namespace QuizHubBackend.Services
             }
             var versionOfParent = versionParentQuiz.Version;
             quiz.Version = versionOfParent + 1;
+            int quizPoints = 0;
 
             if(quiz.Questions != null)
             {
                 foreach(var question in quiz.Questions)
                 {
                     question.Quiz = quiz;
+                    quizPoints += question.Points;
 
                     foreach(var answer in question.Answers)
                     {
@@ -110,6 +113,7 @@ namespace QuizHubBackend.Services
                     }
                 }
             }
+            quiz.QuizPoints = quizPoints;
 
             _appDbContext.Quizes.Add(quiz);
 
@@ -128,6 +132,8 @@ namespace QuizHubBackend.Services
 
 
             var quiz = await _appDbContext.Quizes.Include(q => q.Questions).ThenInclude(qn => qn.Answers).FirstOrDefaultAsync(q => q.Id == quizId);
+
+            var parentQuiz = await _appDbContext.Quizes.Include(q => q.Questions).ThenInclude(qn => qn.Answers).FirstOrDefaultAsync(q => q.Id == quizCompletitionDTO.QuizId);
 
             if (quiz == null)
             {
@@ -155,6 +161,7 @@ namespace QuizHubBackend.Services
             foreach (var question in quiz.Questions)
             {
 
+                var parentQuestionId = parentQuiz.Questions.Where(q => q.Body.Trim().ToLower().Equals(question.Body.Trim().ToLower())).FirstOrDefault().Id;
 
                 var newQuestion = new Question
                 {
@@ -162,24 +169,28 @@ namespace QuizHubBackend.Services
                     AnswerType = question.AnswerType,
                     Points = question.Points,
                     Quiz = newQuiz,
-                    Answers = new List<Answer>()
+                    Answers = new List<Answer>(),
+                    ParentQuestion = parentQuestionId,
                 };
 
                 var given = quizCompletitionDTO.Answers
-                   .FirstOrDefault(a => a.QuestionId == question.Id);
+                   .Where(a => a.QuestionId == question.Id).ToList();
                 
 
                 if (given != null)
                 {
 
-                    Answer ans = new Answer
+                    foreach (var giv in given)
                     {
-                        QuestionId = question.Id,
-                        Text = given.Text
-                    };
-
-
+                        Answer ans = new Answer
+                        {
+                            QuestionId = question.Id,
+                            Text = giv.Text,
+                        };
                     newQuestion.Answers.Add(ans);
+                    }
+
+
                 }
 
                 newQuiz.Questions.Add(newQuestion);
@@ -215,21 +226,17 @@ namespace QuizHubBackend.Services
             foreach (var question in quiz.Questions)
             {
                 var given = givenAnswers
-                    .FirstOrDefault(a => a.QuestionId == question.Id);
+                    .Where(a => a.QuestionId == question.Id).ToList();
 
                 if (given != null)
                 {
-                    var correctAnswer = question.Answers
-                        .FirstOrDefault(a => a.IsCorrect);
 
-                    if (correctAnswer != null && correctAnswer.Text.ToLower().Equals(given.Text.ToLower()))
+                    var correctAnswers = question.Answers
+                        .Where(a => a.IsCorrect).ToList();
+                    if (IsCorrect(given, correctAnswers))
                     {
-                        points++;
-                       // answersTruFalse.Add(true);
-                    }
-                    else
-                    {
-                       // answersTruFalse.Add(false);
+                        //points++;
+                        points += question.Points;
                     }
                 }
             }
@@ -239,6 +246,14 @@ namespace QuizHubBackend.Services
                 : 0;
 
             return (points, percentage);
+        }
+
+        private bool IsCorrect(List<AnswerDTO> given, List<Answer> correctAnswers)
+        {
+            return given.Select(g => g.Text.Trim().ToLower())
+                        .OrderBy(t => t)
+                        .SequenceEqual(correctAnswers.Select(c => c.Text.Trim().ToLower())
+                                                     .OrderBy(t => t));
         }
 
         public async Task<List<QuizDTO>> GetAllQuizzes()
@@ -276,7 +291,17 @@ namespace QuizHubBackend.Services
 
         public async Task<List<QuizResultDTO>> GetMyResults(int userId)
         {
-            var results = await _appDbContext.QuizResults.Where(q => q.UserId == userId).ToListAsync();
+            var results = await _appDbContext.QuizResults.Where(q => q.UserId == userId && !q.IsDeleted).ToListAsync();
+
+            var resultsDTOs = _mapper.Map<List<QuizResultDTO>>(results);
+
+            return resultsDTOs;
+        }
+
+
+        public async Task<List<QuizResultDTO>> GetAllResults()
+        {
+            var results = await _appDbContext.QuizResults.Where(q => !q.IsDeleted).ToListAsync();
 
             var resultsDTOs = _mapper.Map<List<QuizResultDTO>>(results);
 
@@ -290,6 +315,18 @@ namespace QuizHubBackend.Services
             
 
             quiz.IsDeleted = true;
+
+            List<Quiz> connectedQuizzes = _appDbContext.Quizes.Where(q => q.ParentQuiz == quizId).ToList();
+
+           
+            
+            foreach(var conQuiz in connectedQuizzes)
+            {
+                conQuiz.IsDeleted = true;
+                QuizResult result = _appDbContext.QuizResults.Where(q => q.QuizId == conQuiz.Id).FirstOrDefault();
+
+                result.IsDeleted = true;
+            }
 
             await _appDbContext.SaveChangesAsync();
 

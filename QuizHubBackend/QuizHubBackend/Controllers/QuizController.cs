@@ -58,6 +58,14 @@ namespace QuizHubBackend.Controllers
             return Ok(results);
         }
 
+
+        [HttpGet("getAllResults")]
+        public async Task<IActionResult> GetAllResults()
+        {
+            List<QuizResultDTO> results = await _quizService.GetAllResults();
+            return Ok(results);
+        }
+
         [HttpPost("updateQuiz")]
         public async Task<IActionResult> UpdateQuiz(QuizDTO quizDTO)
         {

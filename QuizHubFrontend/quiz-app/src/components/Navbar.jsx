@@ -27,19 +27,35 @@ const Navbar = () => {
           Home
         </Link>
         {authContext.userType === "Admin" ? (
-          <Link
-            to="/create-quiz"
-            className="hover:text-purple-200 transition-colors text-lg"
-          >
-            New Quiz
-          </Link>
+          <>
+            <Link
+              to="/create-quiz"
+              className="hover:text-purple-200 transition-colors text-lg"
+            >
+              New Quiz
+            </Link>
+            <Link
+              to="/allResults"
+              className="hover:text-purple-200 transition-colors text-lg"
+            >
+              Results
+            </Link>
+          </>
         ) : (
-          <Link
-            to="/my-results"
-            className="hover:text-purple-200 transition-colors text-lg"
-          >
-            My Results
-          </Link>
+          <>
+            <Link
+              to="/my-results"
+              className="hover:text-purple-200 transition-colors text-lg"
+            >
+              My Results
+            </Link>
+            <Link
+              to="/leaderboard"
+              className="hover:text-purple-200 transition-colors text-lg"
+            >
+              Leaderboard
+            </Link>
+          </>
         )}
 
         <button

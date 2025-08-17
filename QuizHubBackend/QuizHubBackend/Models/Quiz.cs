@@ -37,6 +37,8 @@ namespace QuizHubBackend.Models
         public int? ParentQuiz { get; set; }
 
         public int? VersionParentQuiz { get; set; }
+
+        public int QuizPoints { get; set; }
         
     }
 }

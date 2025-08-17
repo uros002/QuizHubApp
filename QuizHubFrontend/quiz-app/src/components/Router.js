@@ -21,7 +21,8 @@ import QuizHubMain, {
 import QuizResultsPage from "./Pages/MyResults";
 import QuizSystem from "./Pages/QuizTakingPage";
 import QuizCreatePage from "./Pages/QuizCreatePage";
-import QuizCreatePage2 from "./Pages/QuizCreatePage2";
+import LeaderboardPage from "./Pages/Leaderboard";
+import QuizzesResultsPage from "./Pages/AllUsersResults";
 
 const Router = () => {
   const authContext = React.useContext(AuthContext);
@@ -45,7 +46,7 @@ const Router = () => {
         path="/create-quiz"
         element={
           authContext.userType === "Admin" ? (
-            <QuizCreatePage2
+            <QuizCreatePage
               onSave={(newQuiz) => {
                 // Handle saving the quiz to your backend
                 console.log("New quiz created:", newQuiz);
@@ -60,6 +61,23 @@ const Router = () => {
           )
         }
       />
+      <Route
+        path="/allResults"
+        element={
+          authContext.userType === "Admin" ? (
+            <QuizzesResultsPage />
+          ) : (
+            <Navigate to={"/"} />
+          )
+        }
+      />
+      <Route
+        path="/leaderboard"
+        element={
+          authContext.token ? <LeaderboardPage /> : <Navigate to={"/"} />
+        }
+      />
+
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

@@ -534,7 +534,25 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
 
   // Question Editor Component
   const QuestionEditor = ({ question, isNew = false }) => {
-    const [localQuestion, setLocalQuestion] = useState(question);
+    const [localQuestion, setLocalQuestion] = useState({
+      correctAnswers: [],
+      points: 0,
+      answers: [],
+      body: "",
+      answerType: "",
+    });
+
+    useEffect(() => {
+      if (question) {
+        setLocalQuestion({
+          ...question,
+          correctAnswers: (question.correctAnswers || []).map((a) =>
+            typeof a === "string" ? a : a.text
+          ),
+          points: question.points ?? 0,
+        });
+      }
+    }, [question]);
 
     const updateLocalQuestion = (field, value) => {
       setLocalQuestion((prev) => ({ ...prev, [field]: value }));
@@ -554,12 +572,47 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
 
     //setLocalQuestion(mergedQuestion);
 
+    // Helper to count blanks (___)
+    const countBlanks = (text) => {
+      if (!text) return 0;
+      return (text.match(/_/g) || []).length;
+    };
+
     const saveQuestion = () => {
+      if (localQuestion.answerType === "FillInBlank") {
+        localQuestion.answerType = "FillTheBlank";
+      }
+      const blanksInText = countBlanks(localQuestion.body);
+      const answersCount = (localQuestion.answers || []).length;
+
+      console.log("Blanks in text:", blanksInText);
+      console.log("Answers count:", answersCount);
+
+      if (
+        localQuestion.answerType === "FillTheBlank" &&
+        blanksInText !== answersCount
+      ) {
+        alert(
+          `Number of blanks (${blanksInText}) does not match number of answers (${answersCount}).`
+        );
+        return; // prevent saving
+      }
+
       if (isNew) {
         console.log("!!!!NEW QUESTION!!!! -----> ", localQuestion);
 
         if (!localQuestion.correctAnswers) {
           return;
+        }
+
+        if (localQuestion.answerType === "FillTheBlank") {
+          // if (Array.isArray(localQuestion.correctAnswers)) {
+          //   localQuestion.answers = [localQuestion.answers.join("")];
+          // }
+          localQuestion.answers = localQuestion.correctAnswers.map((ca) => ({
+            text: ca,
+            isCorrect: true,
+          }));
         }
 
         if (localQuestion.answers) {
@@ -568,6 +621,7 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
             isCorrect: localQuestion.correctAnswers.includes(answer.text),
           }));
         }
+
         setNewQuestion(localQuestion);
       } else {
         handleQuestionChange(question.id, "body", localQuestion.body);
@@ -767,21 +821,22 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
         )}
 
         {/* Fill in the Blank */}
-        {question.answerType === "FillInBlank" && (
+        {/* {question.answerType === "FillInBlank" && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Correct Answers (use ___ in question text for blanks)
             </label>
-            {(localQuestion.correctAnswers || [""]).map((answer, index) => (
+            {(localQuestion.correctAnswers || []).map((answer, index) => (
               <div key={index} className="flex items-center gap-2 mb-2">
                 <input
                   type="text"
                   value={answer}
                   onChange={(e) => {
                     const newAnswers = [
-                      ...(localQuestion.correctAnswers || [""]),
+                      ...(localQuestion.correctAnswers || []),
                     ];
                     newAnswers[index] = e.target.value;
+
                     updateLocalQuestion("correctAnswers", newAnswers);
                   }}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -804,8 +859,67 @@ const QuizViewPage = ({ quiz, onSave, onBack }) => {
             ))}
             <button
               onClick={() => {
-                const currentAnswers = localQuestion.correctAnswers || [""];
+                const currentAnswers = localQuestion.correctAnswers || [];
                 updateLocalQuestion("correctAnswers", [...currentAnswers, ""]);
+              }}
+              className="text-indigo-600 hover:text-indigo-500 text-sm font-medium"
+            >
+              + Add another answer
+            </button>
+          </div>
+        )} */}
+
+        {/* Fill in the Blank */}
+        {question.answerType === "FillTheBlank" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Correct Answers (use ___ in question text for blanks)
+            </label>
+
+            {(localQuestion.answers || []).map((answerObj, index) => (
+              <div key={index} className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  value={answerObj.text}
+                  onChange={(e) => {
+                    const newAnswers = [...(localQuestion.answers || [])];
+                    newAnswers[index] = {
+                      ...newAnswers[index],
+                      text: e.target.value,
+                    };
+                    updateLocalQuestion("answers", newAnswers);
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder={`Answer ${index + 1}`}
+                />
+                {(localQuestion.answers || []).length > 1 && (
+                  <button
+                    onClick={() => {
+                      const newAnswers = (localQuestion.answers || []).filter(
+                        (_, i) => i !== index
+                      );
+                      updateLocalQuestion("answers", newAnswers);
+                    }}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+
+            <button
+              onClick={() => {
+                const currentAnswers = localQuestion.answers || [];
+                updateLocalQuestion("answers", [
+                  ...currentAnswers,
+                  {
+                    id: Date.now(),
+                    text: "",
+                    isCorrect: true,
+                    questionId: question.id,
+                  },
+                ]);
               }}
               className="text-indigo-600 hover:text-indigo-500 text-sm font-medium"
             >
@@ -1512,6 +1626,7 @@ const QuizHubMain = ({
 
   const prepareQuizForSave = (quizData) => {
     const preparedQuestions = quizData.questions.map((q) => {
+      console.log("NEW QUESTION FOR ADD", q);
       const preparedAnswers = q.answers.map(
         (a) =>
           new Models.Answer({

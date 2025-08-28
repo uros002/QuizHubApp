@@ -616,7 +616,7 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
             <div className="text-center">
               <ScoreBadge percentage={result.percentage} />
               <div className="text-xs text-gray-500 mt-1">
-                {result.points}/{result.numOfQuestions} pts
+                {result.points}/{result.quizPoints} pts
               </div>
             </div>
           </div>
@@ -636,7 +636,7 @@ const ResultCard = ({ result, onViewDetails, previousResult }) => {
               <BookOpen className="h-4 w-4" />
             </div>
             <div className="text-sm font-medium text-gray-900">
-              {result.points}/{result.numOfQuestions}
+              {result.points}/{result.quizPoints}
             </div>
             <div className="text-xs text-gray-500">Correct</div>
           </div>
@@ -732,7 +732,7 @@ const QuizResultsPage = () => {
     return results.map((result) => {
       const quiz = allQuizzes.find((q) => q.id === result.quizId) || {};
 
-      console.log("FOUND QUIZ points: ", quiz.quizPoints);
+      console.log("FOUND QUIZ : ", quiz);
 
       const parentQuiz = allQuizzes.find((q) => q.id === quiz.parentQuiz);
 
@@ -748,6 +748,7 @@ const QuizResultsPage = () => {
         correctQuestions: parentQuiz.questions || [],
         percentage: percentage(result, parentQuiz),
         parentQuiz: parentQuiz.id || null,
+        quizPoints: parentQuiz.quizPoints || 0,
       };
     });
   }, [results, allQuizzes]);

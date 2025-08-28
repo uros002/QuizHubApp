@@ -214,8 +214,8 @@ const FillBlankQuestion = ({ question, answers, onAnswerChange }) => {
     onAnswerChange(newAnswers);
   };
 
-  // Split question text by blanks (assuming blanks are marked with _____)
-  const parts = question.text.split("_____");
+  // Split question text by blanks (assuming blanks are marked with _)
+  const parts = question.body.split("_");
 
   return (
     <div className="space-y-4">

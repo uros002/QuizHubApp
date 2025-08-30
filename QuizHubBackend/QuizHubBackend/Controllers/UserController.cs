@@ -26,10 +26,10 @@ namespace QuizHubBackend.Controllers
             var token = await _userService.Login(dto);
             if(token == "User does not exist!")
             {
-                return NotFound(token);
+                return Ok(token);
             }else if(token == "Password incorrect!")
             {
-                return Unauthorized(token);
+                return Ok(token);
             }
             else if(token == "User is not active!")
             {

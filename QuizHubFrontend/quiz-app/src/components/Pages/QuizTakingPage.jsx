@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Clock,
   ChevronLeft,
@@ -304,6 +304,13 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(quiz.timeDuration);
   const [showConfirmFinish, setShowConfirmFinish] = useState(false);
+  const [quizFinished, setQuizFinished] = useState(false);
+  const quizFinishedRef = useRef(false);
+  const answersRef = useRef(answers);
+
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const totalQuestions = quiz.questions.length;
@@ -318,6 +325,7 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
           handleTimeUp();
           return 0;
         }
+
         return prev - 1;
       });
     }, 1000);
@@ -326,8 +334,11 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   }, []);
 
   const handleTimeUp = useCallback(() => {
-    onFinish(answers, timeLeft);
-  }, [answers, onFinish]);
+    if (!quizFinishedRef.current) {
+      quizFinishedRef.current = true;
+      handleFinishQuiz(0, answersRef.current);
+    }
+  }, [quizFinished, quizFinishedRef, answersRef, onFinish]);
 
   const handleAnswerChange = (answer) => {
     console.log("ANSWER: ", answer);
@@ -340,6 +351,7 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
 
   const convertAnswersToListModel = (answers) => {
     const result = [];
+    //const transformedAnswers = transformAnswers(answers);
     console.log("Converting answers to list model:", answers);
     Object.entries(answers).map(([questionId, text]) => {
       if (Array.isArray(text)) {
@@ -376,11 +388,18 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
   //   }
   // };
 
-  const handleFinishQuiz = () => {
-    const modelAnswers = convertAnswersToListModel(answers);
+  const handleFinishQuiz = (forcedTimeLeft = null, latestAnswers = answers) => {
+    if (quizFinished) return;
+
+    setQuizFinished(true);
+    quizFinishedRef.current = true;
+
+    const modelAnswers = convertAnswersToListModel(latestAnswers);
+    const finalTimeLeft = forcedTimeLeft !== null ? forcedTimeLeft : timeLeft;
+
     console.log("Submitting answers:", modelAnswers);
-    console.log("time left:", timeLeft);
-    onFinish(modelAnswers, timeLeft);
+    console.log("time left:", finalTimeLeft);
+    onFinish(modelAnswers, finalTimeLeft);
   };
 
   const getAnsweredCount = () => {
@@ -487,7 +506,7 @@ export const QuizTakingPage = ({ quiz, onFinish, onBack }) => {
                 Continue Quiz
               </button>
               <button
-                onClick={handleFinishQuiz}
+                onClick={() => handleFinishQuiz()}
                 className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
               >
                 Finish Quiz
@@ -590,7 +609,7 @@ export const ResultsPage = ({
       });
     });
 
-    const percentage = Math.round((correctAnswers / quiz.quizPoints) * 100);
+    const percentage = Math.round((wonPoints / quiz.quizPoints) * 100);
 
     console.log("Detailed results:", detailedResults);
     return {

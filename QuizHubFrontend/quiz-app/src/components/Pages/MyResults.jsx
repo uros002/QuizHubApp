@@ -560,9 +560,11 @@ const ResultDetailsModal = ({ result, onClose, previousResults }) => {
                 </h4>
                 <div className="text-sm text-gray-600">
                   Average:{" "}
-                  {Math.round(
-                    (result.timeDuration / result.numOfQuestions) * 10
-                  ) / 10}{" "}
+                  {formatTime(
+                    Math.round(
+                      (result.timeDuration / result.numOfQuestions) * 10
+                    ) / 10
+                  )}{" "}
                   min per question
                 </div>
               </div>
@@ -815,7 +817,11 @@ const QuizResultsPage = () => {
               sum +
               percentage(
                 result,
-                allQuizzes.find((q) => q.id === result.quizId)
+                allQuizzes.find(
+                  (pq) =>
+                    allQuizzes.find((q) => q.id === result.quizId).parentQuiz ==
+                    pq.id
+                )
               ),
             0
           ) / totalQuizzes
@@ -827,7 +833,11 @@ const QuizResultsPage = () => {
           ...filteredResults.map((result) =>
             percentage(
               result,
-              allQuizzes.find((q) => q.id === result.quizId)
+              allQuizzes.find(
+                (pq) =>
+                  allQuizzes.find((q) => q.id === result.quizId).parentQuiz ==
+                  pq.id
+              )
             )
           )
         )

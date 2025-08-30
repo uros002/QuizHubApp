@@ -47,16 +47,17 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
     // e.preventDefault();
     if (validateLogin()) {
       await authContext.login(loginData);
+
       var newError = {
         password: localStorage.getItem("PasswordError") || null,
         username: localStorage.getItem("UsernameError") || null,
       };
       console.log("New error:", newError);
       setErrors(newError); // Clear errors on successful login
-      //if (newError.password === null && newError.username === null) {
-      console.log("AuthContext token: ", authContext.token);
-      navigate("/main");
-      //}
+      if (newError.password === null && newError.username === null) {
+        console.log("AuthContext token: ", authContext.token);
+        navigate("/main");
+      }
     }
   };
 
@@ -112,12 +113,14 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
                 className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.username ? "border-red-500" : "border-gray-300"
+                  errors.username !== "null" && errors.username
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 placeholder="Enter your username"
               />
             </div>
-            {errors.username && (
+            {errors.username !== "null" && (
               <p className="mt-1 text-sm text-red-600">{errors.username}</p>
             )}
           </div>
@@ -138,7 +141,9 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
                 onChange={handleChange}
                 onKeyPress={handleKeyPress}
                 className={`block w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.password ? "border-red-500" : "border-gray-300"
+                  errors.password !== "null" && errors.password
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
                 placeholder="Enter your password"
               />
@@ -154,7 +159,7 @@ const LoginForm = ({ onSubmit, onSwitchToRegister, className = "" }) => {
                 )}
               </button>
             </div>
-            {errors.password && (
+            {errors.password !== "null" && (
               <p className="mt-1 text-sm text-red-600">{errors.password}</p>
             )}
           </div>

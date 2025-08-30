@@ -10,6 +10,8 @@ export const AuthProvider = (props) => {
   const loginHandler = async (loginData) => {
     try {
       const response = await api.post("api/users/login", loginData);
+
+      console.log("response data: ", response);
       if (
         response.data !== "Password incorrect!" &&
         response.data !== "User does not exist!"
@@ -23,9 +25,11 @@ export const AuthProvider = (props) => {
       } else if (response.data === "User does not exist!") {
         setError("Invalid username");
         localStorage.setItem("UsernameError", "Invalid username!");
+        localStorage.setItem("PasswordError", null);
       } else if (response.data === "Password incorrect!") {
         setError("Password incorrect!");
         localStorage.setItem("PasswordError", "Password incorrect!");
+        localStorage.setItem("UsernameError", null);
       }
     } catch (error) {
       console.error("Login failed:", error);

@@ -705,10 +705,10 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
                             <Target className="h-4 w-4" />
                             <span>{result.points} points</span>
                           </div>
-                          <div className="flex items-center gap-1">
+                          {/* <div className="flex items-center gap-1">
                             <TrendingUp className="h-4 w-4" />
                             <span>{result.percentage}%</span>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </div>

@@ -7,7 +7,7 @@
       <Entity type="Class">
         <Name>Quiz</Name>
         <Access>Public</Access>
-        <Location left="89" top="63" />
+        <Location left="457" top="181" />
         <Size width="162" height="332" />
         <Collapsed>False</Collapsed>
         <Member type="Property">public int Id { get; set; }</Member>
@@ -30,7 +30,7 @@
       <Entity type="Class">
         <Name>Answer</Name>
         <Access>Public</Access>
-        <Location left="709" top="63" />
+        <Location left="1077" top="181" />
         <Size width="162" height="216" />
         <Collapsed>False</Collapsed>
         <Member type="Property">public int Id { get; set; }</Member>
@@ -43,7 +43,7 @@
       <Entity type="Class">
         <Name>QuizResult</Name>
         <Access>Public</Access>
-        <Location left="89" top="512" />
+        <Location left="457" top="630" />
         <Size width="162" height="230" />
         <Collapsed>False</Collapsed>
         <Member type="Property">public int Id { get; set; }</Member>
@@ -60,7 +60,7 @@
       <Entity type="Class">
         <Name>Question</Name>
         <Access>Public</Access>
-        <Location left="423" top="63" />
+        <Location left="791" top="181" />
         <Size width="162" height="216" />
         <Collapsed>False</Collapsed>
         <Member type="Property">public int Id { get; set; }</Member>
@@ -70,12 +70,13 @@
         <Member type="Property">public List&lt;Answer&gt; Answers { get; set; }</Member>
         <Member type="Property">public int QuizId { get; set; }</Member>
         <Member type="Property">public Quiz Quiz { get; set; }</Member>
+        <Member type="Property">public AnswerType AnswerType { get; set; }</Member>
         <Modifier>None</Modifier>
       </Entity>
       <Entity type="Class">
         <Name>User</Name>
         <Access>Public</Access>
-        <Location left="563" top="512" />
+        <Location left="931" top="630" />
         <Size width="162" height="216" />
         <Collapsed>False</Collapsed>
         <Member type="Property">public int Id { get; set; }</Member>
@@ -89,7 +90,7 @@
       <Entity type="Enum">
         <Name>AnswerType</Name>
         <Access>Public</Access>
-        <Location left="886" top="343" />
+        <Location left="1254" top="461" />
         <Size width="162" height="129" />
         <Collapsed>False</Collapsed>
         <Value>OneCorrect</Value>
@@ -100,7 +101,7 @@
       <Entity type="Enum">
         <Name>QuizDifficulty</Name>
         <Access>Public</Access>
-        <Location left="886" top="498" />
+        <Location left="1254" top="616" />
         <Size width="162" height="129" />
         <Collapsed>False</Collapsed>
         <Value>Easy</Value>
@@ -110,6 +111,8 @@
     </Entities>
     <Relationships>
       <Relationship type="Association" first="3" second="1">
+        <Label>
+        </Label>
         <StartOrientation>Horizontal</StartOrientation>
         <EndOrientation>Horizontal</EndOrientation>
         <Direction>Unidirectional</Direction>
@@ -122,13 +125,15 @@
         <StartOrientation>Horizontal</StartOrientation>
         <EndOrientation>Vertical</EndOrientation>
         <BendPoint relativeToStartShape="True">
-          <X>610</X>
-          <Y>203</Y>
+          <X>978</X>
+          <Y>321</Y>
         </BendPoint>
         <Direction>Unidirectional</Direction>
         <AssociationType>Association</AssociationType>
       </Relationship>
       <Relationship type="Association" first="0" second="3">
+        <Label>
+        </Label>
         <StartOrientation>Horizontal</StartOrientation>
         <EndOrientation>Horizontal</EndOrientation>
         <Direction>Unidirectional</Direction>
@@ -148,26 +153,28 @@
         <StartOrientation>Horizontal</StartOrientation>
         <EndOrientation>Vertical</EndOrientation>
         <BendPoint relativeToStartShape="True">
-          <X>22</X>
-          <Y>225</Y>
+          <X>390</X>
+          <Y>343</Y>
         </BendPoint>
         <BendPoint relativeToStartShape="False">
-          <X>169</X>
-          <Y>38</Y>
+          <X>537</X>
+          <Y>156</Y>
         </BendPoint>
         <Direction>Unidirectional</Direction>
         <AssociationType>Association</AssociationType>
       </Relationship>
       <Relationship type="Association" first="4" second="0">
+        <Label>
+        </Label>
         <StartOrientation>Horizontal</StartOrientation>
         <EndOrientation>Horizontal</EndOrientation>
         <BendPoint relativeToStartShape="True">
-          <X>538</X>
-          <Y>551</Y>
+          <X>906</X>
+          <Y>669</Y>
         </BendPoint>
         <BendPoint relativeToStartShape="False">
-          <X>278</X>
-          <Y>208</Y>
+          <X>646</X>
+          <Y>326</Y>
         </BendPoint>
         <Direction>Bidirectional</Direction>
         <AssociationType>Association</AssociationType>
@@ -175,11 +182,13 @@
         <EndMultiplicity>0..*</EndMultiplicity>
       </Relationship>
       <Relationship type="Association" first="0" second="2">
+        <Label>
+        </Label>
         <StartOrientation>Vertical</StartOrientation>
         <EndOrientation>Vertical</EndOrientation>
         <BendPoint relativeToStartShape="True">
-          <X>131</X>
-          <Y>426</Y>
+          <X>499</X>
+          <Y>544</Y>
         </BendPoint>
         <Direction>Bidirectional</Direction>
         <AssociationType>Aggregation</AssociationType>
@@ -187,6 +196,8 @@
         <EndMultiplicity>0..1</EndMultiplicity>
       </Relationship>
       <Relationship type="Association" first="4" second="2">
+        <Label>
+        </Label>
         <StartOrientation>Horizontal</StartOrientation>
         <EndOrientation>Horizontal</EndOrientation>
         <Direction>Bidirectional</Direction>

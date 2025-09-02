@@ -534,7 +534,310 @@ const ViewLeaderboardButton = ({ onView }) => (
 );
 
 // Leaderboard Modal Component
+// const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
+//   const formatTime = (seconds) => {
+//     const minutes = Math.floor(seconds / 60);
+//     const remainingSeconds = seconds % 60;
+//     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+//   };
+
+//   const getRankIcon = (rank) => {
+//     switch (rank) {
+//       case 1:
+//         return <Crown className="h-6 w-6 text-yellow-500" />;
+//       case 2:
+//         return <Medal className="h-6 w-6 text-gray-400" />;
+//       case 3:
+//         return <Award className="h-6 w-6 text-orange-600" />;
+//       default:
+//         return <span className="text-lg font-bold text-gray-600">#{rank}</span>;
+//     }
+//   };
+
+//   const getRankBadgeColor = (rank) => {
+//     switch (rank) {
+//       case 1:
+//         return "bg-gradient-to-r from-yellow-400 to-yellow-600";
+//       case 2:
+//         return "bg-gradient-to-r from-gray-300 to-gray-500";
+//       case 3:
+//         return "bg-gradient-to-r from-orange-400 to-orange-600";
+//       default:
+//         return "bg-gradient-to-r from-indigo-400 to-indigo-600";
+//     }
+//   };
+
+//   return (
+//     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+//       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+//         {/* Modal Header */}
+//         <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-6 text-white">
+//           <div className="flex items-center justify-between">
+//             <div>
+//               <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+//                 <Trophy className="h-6 w-6" />
+//                 Leaderboard
+//               </h2>
+//               <p className="text-yellow-100">{quiz?.name}</p>
+//             </div>
+//             <button
+//               onClick={onClose}
+//               className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+//             >
+//               <X className="h-6 w-6" />
+//             </button>
+//           </div>
+//         </div>
+
+//         {/* Modal Content */}
+//         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+//           {loading ? (
+//             <div className="text-center py-12">
+//               <Trophy className="h-12 w-12 text-indigo-500 mx-auto mb-4 animate-pulse" />
+//               <p className="text-gray-600">Loading leaderboard...</p>
+//             </div>
+//           ) : leaderboardData.length === 0 ? (
+//             <div className="text-center py-12">
+//               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+//               <h3 className="text-lg font-medium text-gray-900 mb-2">
+//                 No Results Yet
+//               </h3>
+//               <p className="text-gray-500">Be the first to take this quiz!</p>
+//             </div>
+//           ) : (
+//             <div className="space-y-4">
+//               {/* Top 3 Podium */}
+//               {leaderboardData.length >= 3 && (
+//                 <div className="mb-8">
+//                   <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+//                     🏆 Top Performers 🏆
+//                   </h3>
+//                   <div className="flex justify-center items-end gap-4 mb-6">
+//                     {/* Second Place */}
+//                     {leaderboardData[1] && (
+//                       <div className="text-center">
+//                         <div className="bg-gray-200 rounded-lg p-4 h-20 flex items-end justify-center">
+//                           <Medal className="h-8 w-8 text-gray-400" />
+//                         </div>
+//                         <div className="mt-2">
+//                           <p className="font-semibold text-sm">
+//                             {leaderboardData[1].username || "Anonymous"}
+//                           </p>
+//                           <p className="text-xs text-gray-600">
+//                             {leaderboardData[1].points} pts
+//                           </p>
+//                         </div>
+//                       </div>
+//                     )}
+
+//                     {/* First Place */}
+//                     {leaderboardData[0] && (
+//                       <div className="text-center">
+//                         <div className="bg-yellow-200 rounded-lg p-4 h-24 flex items-end justify-center">
+//                           <Crown className="h-10 w-10 text-yellow-600" />
+//                         </div>
+//                         <div className="mt-2">
+//                           <p className="font-bold text-sm">
+//                             {leaderboardData[0].username || "Anonymous"}
+//                           </p>
+//                           <p className="text-xs text-gray-600">
+//                             {leaderboardData[0].points} pts
+//                           </p>
+//                         </div>
+//                       </div>
+//                     )}
+
+//                     {/* Third Place */}
+//                     {leaderboardData[2] && (
+//                       <div className="text-center">
+//                         <div className="bg-orange-200 rounded-lg p-4 h-16 flex items-end justify-center">
+//                           <Award className="h-7 w-7 text-orange-600" />
+//                         </div>
+//                         <div className="mt-2">
+//                           <p className="font-semibold text-sm">
+//                             {leaderboardData[2].username || "Anonymous"}
+//                           </p>
+//                           <p className="text-xs text-gray-600">
+//                             {leaderboardData[2].points} pts
+//                           </p>
+//                         </div>
+//                       </div>
+//                     )}
+//                   </div>
+//                 </div>
+//               )}
+
+//               {/* Full Leaderboard List */}
+//               <div className="space-y-2">
+//                 {leaderboardData.map((result, index) => (
+//                   <div
+//                     key={result.id || index}
+//                     className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+//                       index < 3
+//                         ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 shadow-md"
+//                         : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+//                     }`}
+//                   >
+//                     <div className="flex items-center gap-4">
+//                       {/* Rank */}
+//                       <div
+//                         className={`flex items-center justify-center w-10 h-10 rounded-full text-white ${getRankBadgeColor(
+//                           result.rank
+//                         )}`}
+//                       >
+//                         {index < 3 ? (
+//                           getRankIcon(result.rank)
+//                         ) : (
+//                           <span className="font-bold">#{result.rank}</span>
+//                         )}
+//                       </div>
+
+//                       {/* User Info */}
+//                       <div>
+//                         <div className="flex items-center gap-2">
+//                           <User className="h-4 w-4 text-gray-500" />
+//                           <span className="font-semibold text-gray-900">
+//                             {result?.username || "Anonymus"}
+//                           </span>
+//                         </div>
+//                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+//                           <div className="flex items-center gap-1">
+//                             <Target className="h-4 w-4" />
+//                             <span>{result.points} points</span>
+//                           </div>
+//                           {/* <div className="flex items-center gap-1">
+//                             <TrendingUp className="h-4 w-4" />
+//                             <span>{result.percentage}%</span>
+//                           </div> */}
+//                         </div>
+//                       </div>
+//                     </div>
+
+//                     {/* Time and Date */}
+//                     <div className="text-right">
+//                       <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
+//                         <Clock className="h-4 w-4" />
+//                         <span>{formatTime(result.timeDuration)}</span>
+//                       </div>
+//                       <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+//                         <Calendar className="h-3 w-3" />
+//                         <span>
+//                           {new Date(
+//                             result.dateOfCompletition
+//                           ).toLocaleDateString()}
+//                         </span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </div>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// Enhanced LeaderboardModal Component with Time Filters
 const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  const [filteredData, setFilteredData] = useState([]);
+
+  // Initialize filtered data when leaderboardData changes
+  useEffect(() => {
+    setFilteredData(leaderboardData);
+  }, [leaderboardData]);
+
+  // Filter data based on time selection
+  useEffect(() => {
+    if (!leaderboardData || leaderboardData.length === 0) {
+      setFilteredData([]);
+      return;
+    }
+
+    const now = new Date();
+    let filtered = [...leaderboardData];
+
+    switch (timeFilter) {
+      case "week":
+        // Calculate start of current week (Sunday)
+        const currentDate = new Date(now);
+        const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const startOfWeek = new Date(currentDate);
+        startOfWeek.setDate(currentDate.getDate() - dayOfWeek);
+        startOfWeek.setHours(0, 0, 0, 0); // Start of Sunday
+
+        // Calculate end of current week (Saturday 23:59:59)
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999); // End of Saturday
+
+        filtered = leaderboardData.filter((result) => {
+          const resultDate = new Date(result.dateOfCompletition);
+          return resultDate >= startOfWeek && resultDate <= endOfWeek;
+        });
+        break;
+
+      case "month":
+        const oneMonthAgo = new Date(
+          now.getFullYear(),
+          now.getMonth() - 1,
+          now.getDate()
+        );
+        filtered = leaderboardData.filter(
+          (result) => new Date(result.dateOfCompletition) >= oneMonthAgo
+        );
+        break;
+
+      case "3months":
+        const threeMonthsAgo = new Date(
+          now.getFullYear(),
+          now.getMonth() - 3,
+          now.getDate()
+        );
+        filtered = leaderboardData.filter(
+          (result) => new Date(result.dateOfCompletition) >= threeMonthsAgo
+        );
+        break;
+
+      case "year":
+        const oneYearAgo = new Date(
+          now.getFullYear() - 1,
+          now.getMonth(),
+          now.getDate()
+        );
+        filtered = leaderboardData.filter(
+          (result) => new Date(result.dateOfCompletition) >= oneYearAgo
+        );
+        break;
+
+      case "all":
+      default:
+        filtered = leaderboardData;
+        break;
+    }
+
+    // Re-rank the filtered data
+    const reranked = filtered
+      .sort((a, b) => {
+        if (b.points === a.points) {
+          return a.timeDuration - b.timeDuration;
+        }
+        return b.points - a.points;
+      })
+      .map((result, index) => ({
+        ...result,
+        rank: index + 1,
+        percentage: quiz
+          ? Math.round((result.points / quiz.quizPoints) * 100)
+          : 0,
+      }));
+
+    setFilteredData(reranked);
+  }, [timeFilter, leaderboardData, quiz]);
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -567,19 +870,90 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
     }
   };
 
+  const getTimeFilterLabel = (filter) => {
+    switch (filter) {
+      case "week":
+        return "This Week";
+      case "month":
+        return "This Month";
+      case "3months":
+        return "Last 3 Months";
+      case "year":
+        return "This Year";
+      case "all":
+        return "All Time";
+      default:
+        return "All Time";
+    }
+  };
+
+  const timeFilterOptions = [
+    { value: "all", label: "All Time" },
+    { value: "week", label: "This Week" },
+    { value: "month", label: "This Month" },
+    { value: "3months", label: "Last 3 Months" },
+    { value: "year", label: "This Year" },
+  ];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-6 text-white">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                 <Trophy className="h-6 w-6" />
                 Leaderboard
               </h2>
               <p className="text-yellow-100">{quiz?.name}</p>
             </div>
+
+            {/* Time Filter Dropdown */}
+            <div className="relative mx-4">
+              <button
+                onClick={() => setShowTimeDropdown(!showTimeDropdown)}
+                className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+              >
+                <Calendar className="h-4 w-4" />
+                <span>{getTimeFilterLabel(timeFilter)}</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {showTimeDropdown && (
+                <div className="absolute top-full mt-1 right-0 w-40 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                  {timeFilterOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setTimeFilter(option.value);
+                        setShowTimeDropdown(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-xl last:rounded-b-xl transition-colors text-gray-700 ${
+                        timeFilter === option.value
+                          ? "bg-indigo-50 text-indigo-600 font-medium"
+                          : ""
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               onClick={onClose}
               className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
@@ -587,6 +961,16 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
               <X className="h-6 w-6" />
             </button>
           </div>
+
+          {/* Results Count */}
+          {!loading && (
+            <div className="mt-3 text-yellow-100 text-sm">
+              Showing {filteredData.length} result
+              {filteredData.length !== 1 ? "s" : ""}
+              {timeFilter !== "all" &&
+                ` for ${getTimeFilterLabel(timeFilter).toLowerCase()}`}
+            </div>
+          )}
         </div>
 
         {/* Modal Content */}
@@ -596,69 +980,87 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
               <Trophy className="h-12 w-12 text-indigo-500 mx-auto mb-4 animate-pulse" />
               <p className="text-gray-600">Loading leaderboard...</p>
             </div>
-          ) : leaderboardData.length === 0 ? (
+          ) : filteredData.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No Results Yet
+                {timeFilter === "all"
+                  ? "No Results Yet"
+                  : `No Results for ${getTimeFilterLabel(timeFilter)}`}
               </h3>
-              <p className="text-gray-500">Be the first to take this quiz!</p>
+              <p className="text-gray-500">
+                {timeFilter === "all"
+                  ? "Be the first to take this quiz!"
+                  : `No one has taken this quiz ${getTimeFilterLabel(
+                      timeFilter
+                    ).toLowerCase()}. Try selecting a different time period.`}
+              </p>
+              {timeFilter !== "all" && (
+                <button
+                  onClick={() => setTimeFilter("all")}
+                  className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                >
+                  View All Time Results
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Top 3 Podium */}
-              {leaderboardData.length >= 3 && (
+              {/* Top 3 Podium (only show if we have at least 3 results) */}
+              {filteredData.length >= 3 && (
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-                    🏆 Top Performers 🏆
+                    Top Performers{" "}
+                    {timeFilter !== "all" &&
+                      `- ${getTimeFilterLabel(timeFilter)}`}
                   </h3>
                   <div className="flex justify-center items-end gap-4 mb-6">
                     {/* Second Place */}
-                    {leaderboardData[1] && (
+                    {filteredData[1] && (
                       <div className="text-center">
                         <div className="bg-gray-200 rounded-lg p-4 h-20 flex items-end justify-center">
                           <Medal className="h-8 w-8 text-gray-400" />
                         </div>
                         <div className="mt-2">
                           <p className="font-semibold text-sm">
-                            {leaderboardData[1].username || "Anonymous"}
+                            {filteredData[1].username || "Anonymous"}
                           </p>
                           <p className="text-xs text-gray-600">
-                            {leaderboardData[1].points} pts
+                            {filteredData[1].points} pts
                           </p>
                         </div>
                       </div>
                     )}
 
                     {/* First Place */}
-                    {leaderboardData[0] && (
+                    {filteredData[0] && (
                       <div className="text-center">
                         <div className="bg-yellow-200 rounded-lg p-4 h-24 flex items-end justify-center">
                           <Crown className="h-10 w-10 text-yellow-600" />
                         </div>
                         <div className="mt-2">
                           <p className="font-bold text-sm">
-                            {leaderboardData[0].username || "Anonymous"}
+                            {filteredData[0].username || "Anonymous"}
                           </p>
                           <p className="text-xs text-gray-600">
-                            {leaderboardData[0].points} pts
+                            {filteredData[0].points} pts
                           </p>
                         </div>
                       </div>
                     )}
 
                     {/* Third Place */}
-                    {leaderboardData[2] && (
+                    {filteredData[2] && (
                       <div className="text-center">
                         <div className="bg-orange-200 rounded-lg p-4 h-16 flex items-end justify-center">
                           <Award className="h-7 w-7 text-orange-600" />
                         </div>
                         <div className="mt-2">
                           <p className="font-semibold text-sm">
-                            {leaderboardData[2].username || "Anonymous"}
+                            {filteredData[2].username || "Anonymous"}
                           </p>
                           <p className="text-xs text-gray-600">
-                            {leaderboardData[2].points} pts
+                            {filteredData[2].points} pts
                           </p>
                         </div>
                       </div>
@@ -669,9 +1071,9 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
 
               {/* Full Leaderboard List */}
               <div className="space-y-2">
-                {leaderboardData.map((result, index) => (
+                {filteredData.map((result, index) => (
                   <div
-                    key={result.id || index}
+                    key={`${result.id || index}-${result.dateOfCompletition}`}
                     className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                       index < 3
                         ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 shadow-md"
@@ -697,7 +1099,7 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-gray-500" />
                           <span className="font-semibold text-gray-900">
-                            {result?.username || "Anonymus"}
+                            {result?.username || "Anonymous"}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
@@ -705,10 +1107,6 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
                             <Target className="h-4 w-4" />
                             <span>{result.points} points</span>
                           </div>
-                          {/* <div className="flex items-center gap-1">
-                            <TrendingUp className="h-4 w-4" />
-                            <span>{result.percentage}%</span>
-                          </div> */}
                         </div>
                       </div>
                     </div>
@@ -735,6 +1133,14 @@ const LeaderboardModal = ({ quiz, leaderboardData, loading, onClose }) => {
           )}
         </div>
       </div>
+
+      {/* Click outside dropdown to close */}
+      {showTimeDropdown && (
+        <div
+          className="fixed inset-0 z-5"
+          onClick={() => setShowTimeDropdown(false)}
+        />
+      )}
     </div>
   );
 };

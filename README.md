@@ -17,7 +17,6 @@ QuizHub is a comprehensive web application that enables users to take quizzes ac
 - [User Roles](#user-roles)
 - [Quiz Question Types](#quiz-question-types)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
